@@ -126,9 +126,9 @@ export default function TopBar() {
               <NotificationDropdown />
             </div>
           </div>
-          <button className="flex items-center justify-center h-9 w-9 rounded-full text-muted hover:bg-primary/5 hover:text-primary transition-colors">
+          <Link href="/profile" className="flex items-center justify-center h-9 w-9 rounded-full text-muted hover:bg-primary/5 hover:text-primary transition-colors">
             <User className="h-5 w-5" />
-          </button>
+          </Link>
         </div>
       </div>
 

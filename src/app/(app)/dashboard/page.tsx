@@ -3,7 +3,7 @@
 import {
   Scan, Map as MapIcon, MessageSquare, ListTodo,
   CloudRain, Wind, AlertTriangle, ChevronRight,
-  Thermometer, Droplets, ArrowUpRight, Zap, ShieldAlert
+  Thermometer, Droplets, ArrowUpRight, ShieldAlert
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/languageStore";
@@ -15,7 +15,7 @@ const FARMER_NAME = "Ramesh";
 const fade = (delay = 0) => ({
   initial: { opacity: 0, y: 18 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.5, delay, ease: "easeOut" as const },
 });
 
 export default function DashboardPage() {
@@ -186,29 +186,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* MSP Ticker */}
-        <div className="col-span-2 md:col-span-1 relative overflow-hidden rounded-2xl p-5"
-          style={{ background: "linear-gradient(160deg, #f0f4ff 0%, #e8eeff 100%)", border: "1px solid rgba(26,71,49,0.12)" }}>
-          <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-[#1A4731] mb-2 block">
-            {language === "en" ? "MSP Rates" : "MSP दर"}
-          </span>
-          <div className="space-y-2">
-            {[
-              { crop: language === "en" ? "Wheat" : "गेहूं", price: "₹2,275", unit: "/qtl", up: true },
-              { crop: language === "en" ? "Rice" : "धान", price: "₹2,183", unit: "/qtl", up: false },
-              { crop: language === "en" ? "Soybean" : "सोयाबीन", price: "₹4,600", unit: "/qtl", up: true },
-            ].map((item) => (
-              <div key={item.crop} className="flex items-center justify-between">
-                <span className="text-xs text-muted font-medium">{item.crop}</span>
-                <div className="flex items-center gap-1">
-                  <span className="font-mono text-sm font-semibold text-[#0D1910]">{item.price}</span>
-                  <span className="font-mono text-[10px] text-muted">{item.unit}</span>
-                  <Zap className={`w-3 h-3 ${item.up ? "text-[#1A6B45]" : "text-[#C53030]"}`} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </motion.div>
 
       {/* ─── SCAN CTA STRIP ─── */}

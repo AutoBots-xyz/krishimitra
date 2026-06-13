@@ -49,19 +49,19 @@ export async function GET(req: Request) {
           { length: (Number(hourly.timeEnd()) - Number(hourly.time())) / hourly.interval() },
           (_, i) => new Date((Number(hourly.time()) + i * hourly.interval() + utcOffsetSeconds) * 1000).toISOString()
         ),
-        temperature_2m: Array.from(hourly.variables(0)!.valuesArray()),
-        rain: Array.from(hourly.variables(1)!.valuesArray()),
-        precipitation: Array.from(hourly.variables(2)!.valuesArray()),
-        precipitation_probability: Array.from(hourly.variables(3)!.valuesArray()),
+        temperature_2m: Array.from(hourly.variables(0)!.valuesArray() || []),
+        rain: Array.from(hourly.variables(1)!.valuesArray() || []),
+        precipitation: Array.from(hourly.variables(2)!.valuesArray() || []),
+        precipitation_probability: Array.from(hourly.variables(3)!.valuesArray() || []),
       },
       daily: {
         time: Array.from(
           { length: (Number(daily.timeEnd()) - Number(daily.time())) / daily.interval() },
           (_, i) => new Date((Number(daily.time()) + i * daily.interval() + utcOffsetSeconds) * 1000).toISOString()
         ),
-        temperature_2m_max: Array.from(daily.variables(0)!.valuesArray()),
-        temperature_2m_min: Array.from(daily.variables(1)!.valuesArray()),
-        weather_code: Array.from(daily.variables(2)!.valuesArray()),
+        temperature_2m_max: Array.from(daily.variables(0)!.valuesArray() || []),
+        temperature_2m_min: Array.from(daily.variables(1)!.valuesArray() || []),
+        weather_code: Array.from(daily.variables(2)!.valuesArray() || []),
       }
     };
 
