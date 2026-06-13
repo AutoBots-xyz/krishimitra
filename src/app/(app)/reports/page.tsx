@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/languageStore";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
-import { ShieldAlert, Zap, AlertTriangle, FileText, CheckCircle2, ChevronRight, Activity, Sprout, Loader2, X, Download, Star } from "lucide-react";
+import { ShieldAlert, Zap, AlertTriangle, FileText, CheckCircle2, ChevronRight, Activity, Sprout, Loader2, X, Download, Star, ImagePlus } from "lucide-react";
 import Link from "next/link";
 import { downloadAsPDF } from "@/lib/pdfUtils";
 
@@ -27,27 +27,67 @@ export default function ReportsPage() {
   const [hoverRating, setHoverRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewImage, setReviewImage] = useState<File | null>(null);
+  const [reviewImagePreview, setReviewImagePreview] = useState<string | null>(null);
 
   const handleSelectReport = (report: any) => {
     setSelectedReport(report);
     setRating(report.raw?.user_rating || 0);
     setFeedback(report.raw?.user_feedback || "");
     setHoverRating(0);
+    setReviewImage(null);
+    setReviewImagePreview(null);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setReviewImage(file);
+      setReviewImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmitReview = async () => {
     if (!selectedReport || rating === 0) return;
     setIsSubmittingReview(true);
     try {
+      let uploadedImageUrl = null;
+
+      if (reviewImage) {
+        const fileExt = reviewImage.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `reviews/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('crop-scans')
+          .upload(filePath, reviewImage);
+
+        if (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          throw uploadError;
+        }
+        
+        const { data: publicUrlData } = supabase.storage
+          .from('crop-scans')
+          .getPublicUrl(filePath);
+          
+        uploadedImageUrl = publicUrlData.publicUrl;
+      }
+
+      const updateData: any = { user_rating: rating, user_feedback: feedback };
+      if (uploadedImageUrl) {
+        updateData.user_feedback_image_url = uploadedImageUrl;
+      }
+
       const { error } = await supabase
         .from('disease_reports')
-        .update({ user_rating: rating, user_feedback: feedback })
+        .update(updateData)
         .eq('id', selectedReport.id);
       
       if (error) throw error;
       
       // Update local state
-      const updatedRaw = { ...selectedReport.raw, user_rating: rating, user_feedback: feedback };
+      const updatedRaw = { ...selectedReport.raw, ...updateData };
       const updatedReport = { ...selectedReport, raw: updatedRaw };
       
       setReports(reports.map(r => r.id === selectedReport.id ? updatedReport : r));
@@ -413,7 +453,12 @@ export default function ReportsPage() {
                         ))}
                       </div>
                       {selectedReport.raw.user_feedback && (
-                        <p className="text-sm text-text/80 italic">"{selectedReport.raw.user_feedback}"</p>
+                        <p className="text-sm text-text/80 italic mb-3">"{selectedReport.raw.user_feedback}"</p>
+                      )}
+                      {selectedReport.raw.user_feedback_image_url && (
+                        <div className="mt-2 rounded-xl overflow-hidden border border-black/10">
+                          <img src={selectedReport.raw.user_feedback_image_url} alt="Review attachment" className="w-full max-h-48 object-cover" />
+                        </div>
                       )}
                     </div>
                   ) : (
@@ -441,6 +486,35 @@ export default function ReportsPage() {
                             value={feedback}
                             onChange={(e) => setFeedback(e.target.value)}
                           />
+                          
+                          <div className="flex items-center gap-3 mb-4">
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              id="review-image-upload" 
+                              className="hidden" 
+                              onChange={handleImageSelect}
+                            />
+                            <label 
+                              htmlFor="review-image-upload"
+                              className="flex items-center gap-2 text-sm text-primary bg-primary/5 hover:bg-primary/10 px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                            >
+                              <ImagePlus className="w-4 h-4" />
+                              {language === 'en' ? "Attach Photo" : "फोटो संलग्न करें"}
+                            </label>
+                            {reviewImagePreview && (
+                              <div className="relative w-12 h-12 rounded-md overflow-hidden border border-black/10">
+                                <img src={reviewImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                <button 
+                                  onClick={(e) => { e.preventDefault(); setReviewImage(null); setReviewImagePreview(null); }}
+                                  className="absolute -top-1 -right-1 bg-white rounded-full text-red-500 shadow-sm hover:scale-110 transition-transform"
+                                >
+                                  <X className="w-4 h-4 p-0.5 bg-white rounded-full border border-black/10" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
                           <button 
                             onClick={handleSubmitReview}
                             disabled={isSubmittingReview}

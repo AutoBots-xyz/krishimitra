@@ -7,7 +7,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function checkSchema() {
   const { data, error } = await supabase
     .from('disease_reports')
-    .select('user_rating')
+    .select('user_rating, user_feedback_image_url')
     .limit(1);
 
   if (error) {

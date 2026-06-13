@@ -157,7 +157,8 @@ export default function ScanPage() {
     // If we have a report, we map it back to the map as a Risk Point
     if (report) {
       const diseaseName = report.disease_name || "";
-      const isHighRisk = diseaseName.includes("Rust") || diseaseName.includes("Blast") || diseaseName.includes("Blight") || report.confidence_score > 0.8;
+      const score = report.confidence_score || 80;
+      const isHighRisk = diseaseName.includes("Rust") || diseaseName.includes("Blast") || diseaseName.includes("Blight") || score > 85;
       const color = isHighRisk ? "#C53030" : "#C8800F";
       
       // Default to Bhopal coordinates if they skipped geotagging
