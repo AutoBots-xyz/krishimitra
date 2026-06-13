@@ -102,12 +102,32 @@ export default function ReportsPage() {
     }
   };
 
+  const translateType = (type: string) => {
+    if (language === 'en') return type;
+    if (type === 'Disease Scan') return 'रोग स्कैन';
+    if (type === 'Farm Plan') return 'फार्म योजना';
+    if (type === 'Soil Test') return 'मिट्टी परीक्षण';
+    return type;
+  };
+
+  const translateSeverity = (sev: string) => {
+    if (language === 'en') return sev;
+    const s = sev.toLowerCase();
+    if (s === 'high') return 'उच्च';
+    if (s === 'optimal') return 'अनुकूल';
+    if (s === 'warning') return 'चेतावनी';
+    if (s === 'moderate') return 'मध्यम';
+    if (s === 'low') return 'निम्न';
+    if (s === 'critical') return 'गंभीर';
+    return sev;
+  };
+
   const mockHistoricalReports = [
     {
       id: "REP-0192",
       type: "Disease Scan",
       date: "Sep 12, 2026",
-      title: "Wheat Rust Analysis",
+      title: language === 'en' ? "Wheat Rust Analysis" : "गेहूं रस्ट विश्लेषण",
       severity: "High",
       icon: ShieldAlert,
       themeColor: "#C53030",
@@ -116,7 +136,7 @@ export default function ReportsPage() {
       id: "REP-0191",
       type: "Farm Plan",
       date: "Aug 05, 2026",
-      title: "Soybean Yield Strategy",
+      title: language === 'en' ? "Soybean Yield Strategy" : "सोयाबीन उपज रणनीति",
       severity: "Optimal",
       icon: Sprout,
       themeColor: "#1A6B45",
@@ -125,7 +145,7 @@ export default function ReportsPage() {
       id: "REP-0190",
       type: "Soil Test",
       date: "Jul 22, 2026",
-      title: "Nitrogen Deficiency",
+      title: language === 'en' ? "Nitrogen Deficiency" : "नाइट्रोजन की कमी",
       severity: "Warning",
       icon: AlertTriangle,
       themeColor: "#B67D14",
@@ -134,7 +154,7 @@ export default function ReportsPage() {
       id: "REP-0189",
       type: "Disease Scan",
       date: "Jul 10, 2026",
-      title: "Healthy Rice Crop",
+      title: language === 'en' ? "Healthy Rice Crop" : "स्वस्थ चावल की फसल",
       severity: "Optimal",
       icon: CheckCircle2,
       themeColor: "#1A6B45",
@@ -349,13 +369,13 @@ export default function ReportsPage() {
                       <Icon className="w-5 h-5" style={{ color: report.themeColor }} />
                     </div>
                     <div>
-                      <p className="font-mono text-[10px] tracking-widest uppercase text-muted mb-0.5">{report.type}</p>
+                      <p className="font-mono text-[10px] tracking-widest uppercase text-muted mb-0.5">{translateType(report.type)}</p>
                       <p className="font-mono text-[11px] text-primary/70">{report.date}</p>
                     </div>
                   </div>
                   <div className="px-2.5 py-1 rounded-md border text-[10px] font-mono uppercase tracking-wide"
                     style={{ borderColor: `${report.themeColor}30`, color: report.themeColor, backgroundColor: `${report.themeColor}05` }}>
-                    {report.severity}
+                    {translateSeverity(report.severity)}
                   </div>
                 </div>
 
@@ -406,13 +426,13 @@ export default function ReportsPage() {
                 </div>
                 <div>
                   <h3 className="font-display font-semibold text-2xl text-text leading-tight">{selectedReport.title}</h3>
-                  <p className="text-muted text-sm">{selectedReport.date} • {selectedReport.type}</p>
+                  <p className="text-muted text-sm">{selectedReport.date} • {translateType(selectedReport.type)}</p>
                 </div>
               </div>
 
               <div className="p-4 rounded-xl mb-6 border" style={{ backgroundColor: `${selectedReport.themeColor}05`, borderColor: `${selectedReport.themeColor}20` }}>
-                <span className="font-mono text-[10px] uppercase tracking-widest block mb-1" style={{ color: selectedReport.themeColor }}>Status</span>
-                <p className="font-medium text-lg" style={{ color: selectedReport.themeColor }}>{selectedReport.severity}</p>
+                <span className="font-mono text-[10px] uppercase tracking-widest block mb-1" style={{ color: selectedReport.themeColor }}>{language === 'en' ? 'Status' : 'स्थिति'}</span>
+                <p className="font-medium text-lg" style={{ color: selectedReport.themeColor }}>{translateSeverity(selectedReport.severity)}</p>
               </div>
 
               <div className="space-y-4 text-sm text-text/80">

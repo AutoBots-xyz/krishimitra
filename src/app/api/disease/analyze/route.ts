@@ -1,7 +1,25 @@
 import { NextResponse } from 'next/server';
 import { mistral, MISTRAL_VISION_MODEL } from '@/lib/mistral';
 
-const SYSTEM_PROMPT = `You are an expert AI agronomist specializing in Indian crop diseases. 
+export async function POST(req: Request) {
+  try {
+    const formData = await req.formData();
+    const image = formData.get('image') as File;
+    const cropType = formData.get('crop_type') as string | null;
+    const language = formData.get('language') as string || 'en';
+
+    if (!image) {
+      return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+    }
+
+    // Convert image to base64 for Pixtral (vision model)
+    const imageBuffer = await image.arrayBuffer();
+    const base64Image = Buffer.from(imageBuffer).toString('base64');
+    const mimeType = image.type || 'image/jpeg';
+
+    const langPrompt = language === 'hi' ? '\nCRITICAL INSTRUCTION: You MUST provide all textual details, names, symptoms, prevention measures, and treatment recommendations entirely in Hindi (Devanagari script). The JSON keys and categorical values (severity_level, disease_category, is_healthy) MUST remain exactly as specified in English.' : '';
+
+    const SYSTEM_PROMPT = `You are an expert AI agronomist specializing in Indian crop diseases. 
 Analyze the crop image provided and return a JSON response ONLY (no markdown, no explanation) with this exact structure:
 {
   "disease_name": "string (full scientific and common name, or 'Healthy Crop' if no disease)",
@@ -17,26 +35,11 @@ Analyze the crop image provided and return a JSON response ONLY (no markdown, no
   "prevention_measures": ["string", ...],
   "is_healthy": boolean
 }
-Focus on Indian farming conditions, crops, and available treatments. Recommend pesticides/fungicides available in India.`;
-
-export async function POST(req: Request) {
-  try {
-    const formData = await req.formData();
-    const image = formData.get('image') as File;
-    const cropType = formData.get('crop_type') as string | null;
-
-    if (!image) {
-      return NextResponse.json({ error: 'No image provided' }, { status: 400 });
-    }
-
-    // Convert image to base64 for Pixtral (vision model)
-    const imageBuffer = await image.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString('base64');
-    const mimeType = image.type || 'image/jpeg';
+Focus on Indian farming conditions, crops, and available treatments. Recommend pesticides/fungicides available in India.${langPrompt}`;
 
     const userPrompt = cropType
       ? `Analyze this ${cropType} crop image for diseases.`
-      : 'Analyze this crop image for diseases. Identify the crop type if possible.';
+      : `Analyze this crop image for diseases. Identify the crop type if possible.`;
 
     const response = await mistral.chat.complete({
       model: MISTRAL_VISION_MODEL,

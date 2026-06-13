@@ -8,6 +8,7 @@ import Image from "next/image";
 import DiseaseReportCard from "@/features/disease-detection/components/DiseaseReportCard";
 import ConsentPopup from "@/features/cropwatch/components/ConsentPopup";
 import { useFarmerStore } from "@/store/farmerStore";
+import { useLanguageStore } from "@/store/languageStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -16,6 +17,7 @@ const MiniMap = dynamic(() => import("@/components/map/MiniMap"), { ssr: false }
 
 export default function ScanPage() {
   const router = useRouter();
+  const { language } = useLanguageStore();
   const { setLocation, addRiskPoint } = useFarmerStore();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -64,6 +66,7 @@ export default function ScanPage() {
     try {
       const formData = new FormData();
       formData.append("image", file);
+      formData.append("language", language);
 
       const res = await fetch("/api/disease/analyze", {
         method: "POST",
@@ -87,7 +90,7 @@ export default function ScanPage() {
         );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : (language === 'en' ? 'Something went wrong. Please try again.' : 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।'));
     } finally {
       setAnalyzing(false);
     }
@@ -149,7 +152,7 @@ export default function ScanPage() {
     if (success) {
       router.push("/reports");
     } else {
-      alert("Failed to save report.");
+      alert(language === 'en' ? "Failed to save report." : "रिपोर्ट सहेजने में विफल।");
     }
   };
 
@@ -168,7 +171,7 @@ export default function ScanPage() {
         id: Date.now(),
         lat: finalLoc.lat,
         lng: finalLoc.lng,
-        riskScore: report.confidence_score || 0.8,
+        riskScore: report.confidence_score ? report.confidence_score / 100 : 0.8,
         riskLevel: isHighRisk ? "HIGH" : "MEDIUM",
         temp: "34.0°C", 
         rain: "310mm",
@@ -202,13 +205,13 @@ export default function ScanPage() {
       {/* Header */}
       <div className="mb-8">
         <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-primary/60 block mb-3">
-          Crop Analysis
+          {language === 'en' ? 'Crop Analysis' : 'फसल विश्लेषण'}
         </span>
         <h1 className="font-display font-semibold text-primary text-4xl md:text-5xl leading-[1.1] mb-3">
-          Scan your field.
+          {language === 'en' ? 'Scan your field.' : 'अपना खेत स्कैन करें।'}
         </h1>
         <p className="text-muted/80 text-lg">
-          Upload a clear photo of the affected leaf or crop for an instant AI-powered diagnosis.
+          {language === 'en' ? 'Upload a clear photo of the affected leaf or crop for an instant AI-powered diagnosis.' : 'त्वरित एआई-आधारित निदान के लिए प्रभावित पत्ती या फसल की एक स्पष्ट तस्वीर अपलोड करें।'}
         </p>
       </div>
 
@@ -239,7 +242,7 @@ export default function ScanPage() {
                       {analyzing && (
                         <div className="absolute inset-0 bg-primary/20 backdrop-blur-[2px] flex flex-col items-center justify-center text-white">
                           <ScanLine className="w-12 h-12 mb-4 animate-pulse" />
-                          <span className="font-mono text-sm tracking-widest uppercase animate-pulse">Running Analysis...</span>
+                          <span className="font-mono text-sm tracking-widest uppercase animate-pulse">{language === 'en' ? 'Running Analysis...' : 'विश्लेषण चल रहा है...'}</span>
                         </div>
                       )}
                     </div>
@@ -248,12 +251,12 @@ export default function ScanPage() {
                     <div className="w-full mb-6">
                       {isGeotagging ? (
                         <div className="flex items-center gap-2 text-sm text-primary font-medium bg-primary/5 p-3 rounded-xl">
-                          <Loader2 className="w-4 h-4 animate-spin" /> Fetching GPS location...
+                          <Loader2 className="w-4 h-4 animate-spin" /> {language === 'en' ? 'Fetching GPS location...' : 'जीपीएस स्थान प्राप्त किया जा रहा है...'}
                         </div>
                       ) : geotagLocation ? (
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 text-sm text-primary font-medium">
-                            <MapPin className="w-4 h-4" /> Geotagged Successfully
+                            <MapPin className="w-4 h-4" /> {language === 'en' ? 'Geotagged Successfully' : 'जियोटैग सफलतापूर्वक'}
                           </div>
                           <MiniMap lat={geotagLocation.lat} lng={geotagLocation.lng} />
                         </div>
@@ -262,7 +265,7 @@ export default function ScanPage() {
 
                     {!analyzing && (
                       <label className="w-full block text-center py-3 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-colors cursor-pointer">
-                        Choose a different photo
+                        {language === 'en' ? 'Choose a different photo' : 'दूसरी तस्वीर चुनें'}
                         <input 
                           type="file" accept="image/*" 
                           onChange={handleFileChange}
@@ -277,16 +280,16 @@ export default function ScanPage() {
                       <ScanLine className="w-8 h-8" strokeWidth={1.5} />
                     </div>
                     <p className="font-display text-2xl text-primary font-medium mb-2 text-center">
-                      Diagnose your crop
+                      {language === 'en' ? 'Diagnose your crop' : 'अपनी फसल का निदान करें'}
                     </p>
                     <p className="text-sm text-primary/60 text-center mb-8 max-w-[240px]">
-                      Take a live picture of the crop or upload from your gallery to geotag and analyze.
+                      {language === 'en' ? 'Take a live picture of the crop or upload from your gallery to geotag and analyze.' : 'फसल की लाइव तस्वीर लें या जियोटैग और विश्लेषण करने के लिए अपनी गैलरी से अपलोड करें।'}
                     </p>
                     
                     <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
                       <label className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 bg-[#1A4731] text-white rounded-xl font-medium shadow-md hover:bg-[#153a27] transition-all cursor-pointer">
                         <Camera className="w-5 h-5 text-white" />
-                        <span>Scan Crop</span>
+                        <span>{language === 'en' ? 'Scan Crop' : 'फसल स्कैन करें'}</span>
                         <input 
                           type="file" accept="image/*" capture="environment" 
                           onChange={handleFileChange}
@@ -296,7 +299,7 @@ export default function ScanPage() {
 
                       <label className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 bg-white text-primary border-2 border-primary/20 rounded-xl font-medium hover:bg-primary/5 transition-all cursor-pointer">
                         <ImageIcon className="w-5 h-5" />
-                        <span>Upload Image</span>
+                        <span>{language === 'en' ? 'Upload Image' : 'तस्वीर अपलोड करें'}</span>
                         <input 
                           type="file" accept="image/*" 
                           onChange={handleFileChange}
@@ -318,8 +321,8 @@ export default function ScanPage() {
                 style={{ background: "linear-gradient(90deg, #1A4731 0%, #163d29 100%)", boxShadow: "0 12px 32px rgba(26,71,49,0.3)" }}
               >
                 <div className="text-left">
-                  <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-1">Step 2</p>
-                  <p className="font-display font-semibold text-white text-xl">Analyze with AI Expert</p>
+                  <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-1">{language === 'en' ? 'Step 2' : 'चरण 2'}</p>
+                  <p className="font-display font-semibold text-white text-xl">{language === 'en' ? 'Analyze with AI Expert' : 'एआई विशेषज्ञ के साथ विश्लेषण करें'}</p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 group-hover:translate-x-1 transition-all">
                   <ArrowRight className="w-5 h-5 text-white" />
@@ -348,13 +351,13 @@ export default function ScanPage() {
                   onClick={() => { setReport(null); setPreview(null); setFile(null); setGeotagLocation(null); }}
                   className="flex-1 py-4 text-primary bg-primary/5 hover:bg-primary/10 rounded-2xl font-medium transition-colors"
                 >
-                  Scan Another
+                  {language === 'en' ? 'Scan Another' : 'एक और स्कैन करें'}
                 </button>
                 <button 
                   onClick={handleSaveReport}
                   className="flex-1 py-4 text-white bg-primary hover:bg-[#153a27] rounded-2xl font-medium transition-colors shadow-md"
                 >
-                  Save to Map
+                  {language === 'en' ? 'Save to Map' : 'नक्शे पर सहेजें'}
                 </button>
               </div>
               <button 
@@ -363,7 +366,7 @@ export default function ScanPage() {
                 className="w-full py-4 text-white bg-[#0D1910] hover:bg-black rounded-2xl font-medium transition-colors shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
-                Save to Reports
+                {language === 'en' ? 'Save to Reports' : 'रिपोर्ट्स में सहेजें'}
               </button>
             </div>
           </motion.div>
