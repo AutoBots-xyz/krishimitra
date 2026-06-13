@@ -60,10 +60,17 @@ export default function LoginPage() {
     // MOCK BYPASS FOR MVP TESTING
     if ((phone === "+919999999999" || phone === "9999999999") && otp === "123456") {
       const { error } = await supabase.auth.signInAnonymously();
-      setLoading(false);
+      
       if (!error) {
+        if (name) {
+          await supabase.auth.updateUser({
+            data: { full_name: name }
+          });
+        }
+        setLoading(false);
         router.push("/dashboard");
       } else {
+        setLoading(false);
         alert(error.message);
       }
       return;
@@ -74,11 +81,18 @@ export default function LoginPage() {
       token: otp,
       type: 'sms',
     });
-    setLoading(false);
+    
     if (error) {
+      setLoading(false);
       console.error(error);
       alert(error.message);
     } else {
+      if (name) {
+        await supabase.auth.updateUser({
+          data: { full_name: name }
+        });
+      }
+      setLoading(false);
       router.push("/dashboard");
     }
   };
