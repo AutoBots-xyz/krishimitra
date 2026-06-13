@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, MapPin, Leaf, Languages, Sparkles } from "lucide-react";
+import { Send, MapPin, Leaf, Languages, Sparkles, History } from "lucide-react";
 import MessageBubble from "@/features/ai-chat/components/MessageBubble";
+import ChatHistorySidebar from "@/features/ai-chat/components/ChatHistorySidebar";
 import { useLanguage } from "@/components/shared/LanguageProvider";
 import { useFarmerStore } from "@/store/farmerStore";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 export default function ChatWindow() {
   const { language, toggleLanguage } = useLanguage();
@@ -25,7 +27,61 @@ export default function ChatWindow() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const handleSaveChat = async () => {
+    if (messages.length <= 1) return;
+    setSaving(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
+      if (!userId) {
+        alert(language === 'hi' ? "कृपया पहले लॉगिन करें" : "Please login first to save chat.");
+        setSaving(false);
+        return;
+      }
+      
+      // Ensure the user exists in the farmers table to satisfy the foreign key constraint
+      await supabase.from('farmers').upsert({ 
+        id: userId, 
+        full_name: userData?.user?.user_metadata?.full_name || 'Guest Farmer' 
+      }, { onConflict: 'id' });
+      
+      const title = messages.find(m => m.role === 'user')?.content?.slice(0, 40) + "..." || "Chat Session";
+      
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('chat_sessions')
+        .insert({ farmer_id: userId, title, language })
+        .select()
+        .single();
+        
+      if (sessionError) throw sessionError;
+      
+      const messageInserts = messages.map(msg => ({
+        session_id: sessionData.id,
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      const { error: msgError } = await supabase
+        .from('chat_messages')
+        .insert(messageInserts);
+        
+      if (msgError) throw msgError;
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Error saving chat:", err);
+      alert("Failed to save chat");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -82,19 +138,36 @@ export default function ChatWindow() {
             </div>
           </div>
 
-          <button 
-            onClick={toggleLanguage} 
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm border border-primary/10 text-primary hover:bg-primary/5 transition-colors"
-            title="Toggle Language"
-          >
-            <Languages className="w-4 h-4" />
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm border border-primary/10 text-primary hover:bg-primary/5 transition-colors"
+              title="View Chat History"
+            >
+              <History className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={handleSaveChat}
+              disabled={saving || messages.length <= 1}
+              className={`flex items-center justify-center px-4 h-10 rounded-full shadow-sm border border-primary/10 transition-colors text-sm font-medium ${saved ? 'bg-success text-white border-success' : 'bg-white text-primary hover:bg-primary/5 disabled:opacity-50'}`}
+              title="Save Chat to History"
+            >
+              {saving ? "Saving..." : saved ? "Saved!" : "Save to History"}
+            </button>
+            <button 
+              onClick={toggleLanguage} 
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm border border-primary/10 text-primary hover:bg-primary/5 transition-colors"
+              title="Toggle Language"
+            >
+              <Languages className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ─── MESSAGES AREA ─── */}
       <div className="flex-1 overflow-y-auto px-4 py-8 md:px-8 relative no-scrollbar">
-        <div className="max-w-3xl mx-auto space-y-8">
+        <div id="chat-container" className="max-w-3xl mx-auto space-y-8 p-4 bg-background">
           <AnimatePresence initial={false}>
             {messages.map((msg, i) => (
               <MessageBubble key={i} message={msg} />
@@ -164,6 +237,13 @@ export default function ChatWindow() {
         </div>
       </div>
 
+      <ChatHistorySidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        onSelectSession={(sessionMessages) => {
+          setMessages(sessionMessages);
+        }} 
+      />
     </div>
   );
 }
