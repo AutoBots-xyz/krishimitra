@@ -1,1 +1,1 @@
-# krishimitra
+# KrishiMitra
