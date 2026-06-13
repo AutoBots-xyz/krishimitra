@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Droplets, ShieldCheck, Zap } from "lucide-react";
+import { AlertTriangle, Droplets, ShieldCheck, Zap, Leaf } from "lucide-react";
 
 export default function DiseaseReportCard({ report }: { report: any }) {
   const isHighRisk = report.severity_level === 'high' || report.severity_level === 'critical';

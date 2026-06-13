@@ -96,7 +96,8 @@ export default function ScanPage() {
   const handleSaveReport = () => {
     // If we have a report, we map it back to the map as a Risk Point
     if (report) {
-      const isHighRisk = report.diseaseName.includes("Rust") || report.diseaseName.includes("Blast") || report.diseaseName.includes("Blight") || report.confidence > 0.8;
+      const diseaseName = report.disease_name || "";
+      const isHighRisk = diseaseName.includes("Rust") || diseaseName.includes("Blast") || diseaseName.includes("Blight") || report.confidence_score > 0.8;
       const color = isHighRisk ? "#C53030" : "#C8800F";
       
       // Default to Bhopal coordinates if they skipped geotagging
@@ -106,7 +107,7 @@ export default function ScanPage() {
         id: Date.now(),
         lat: finalLoc.lat,
         lng: finalLoc.lng,
-        riskScore: report.confidence || 0.8,
+        riskScore: report.confidence_score || 0.8,
         riskLevel: isHighRisk ? "HIGH" : "MEDIUM",
         temp: "34.0°C", 
         rain: "310mm",
@@ -116,13 +117,13 @@ export default function ScanPage() {
         en: { 
           name: "My Scanned Field", 
           state: "Madhya Pradesh", 
-          disease: report.diseaseName || "Detected Issue", 
+          disease: report.disease_name || "Detected Issue", 
           cropType: "Unknown" 
         },
         hi: { 
           name: "मेरा स्कैन किया गया खेत", 
           state: "मध्य प्रदेश", 
-          disease: report.diseaseName || "बीमारी", 
+          disease: report.disease_name || "बीमारी", 
           cropType: "अज्ञात" 
         }
       };
