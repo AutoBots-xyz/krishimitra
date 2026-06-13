@@ -1,0 +1,88 @@
+# ========================
+# Dependencies
+# ========================
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ========================
+# Next.js
+# ========================
+.next/
+out/
+build/
+dist/
+
+# ========================
+# Environment Variables
+# IMPORTANT: Never commit secrets!
+# ========================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# ========================
+# Supabase
+# ========================
+supabase/.branches/
+supabase/.temp/
+
+# ========================
+# Testing & Coverage
+# ========================
+/coverage
+*.lcov
+.nyc_output
+
+# ========================
+# TypeScript
+# ========================
+*.tsbuildinfo
+next-env.d.ts
+
+# ========================
+# Debug & Logs
+# ========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+logs/
+
+# ========================
+# OS & Editor Files
+# ========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# ========================
+# Misc
+# ========================
+*.pem
+.vercel
+.turbo
