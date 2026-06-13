@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/languageStore";
+import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
-import { ShieldAlert, Zap, AlertTriangle, FileText, CheckCircle2, ChevronRight, Activity, Sprout, Loader2, X, Download } from "lucide-react";
+import { ShieldAlert, Zap, AlertTriangle, FileText, CheckCircle2, ChevronRight, Activity, Sprout, Loader2, X, Download, Star } from "lucide-react";
 import Link from "next/link";
 import { downloadAsPDF } from "@/lib/pdfUtils";
 
@@ -18,27 +19,46 @@ export default function ReportsPage() {
   const [isDownloadingMaster, setIsDownloadingMaster] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [isDownloadingHistory, setIsDownloadingHistory] = useState(false);
+  const [reports, setReports] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Review System State
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
-  const handleDownloadMaster = async () => {
-    setIsDownloadingMaster(true);
-    try {
-      await downloadAsPDF("master-synthesis-report", "KisanAI_Master_Synthesis");
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsDownloadingMaster(false);
-    }
+  const handleSelectReport = (report: any) => {
+    setSelectedReport(report);
+    setRating(report.raw?.user_rating || 0);
+    setFeedback(report.raw?.user_feedback || "");
+    setHoverRating(0);
   };
 
-  const handleDownloadHistory = async () => {
-    if (!selectedReport) return;
-    setIsDownloadingHistory(true);
+  const handleSubmitReview = async () => {
+    if (!selectedReport || rating === 0) return;
+    setIsSubmittingReview(true);
     try {
-      await downloadAsPDF("historical-report-content", `KisanAI_${selectedReport.title.replace(/\s+/g, '_')}`);
-    } catch (error) {
-      console.error(error);
+      const { error } = await supabase
+        .from('disease_reports')
+        .update({ user_rating: rating, user_feedback: feedback })
+        .eq('id', selectedReport.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      const updatedRaw = { ...selectedReport.raw, user_rating: rating, user_feedback: feedback };
+      const updatedReport = { ...selectedReport, raw: updatedRaw };
+      
+      setReports(reports.map(r => r.id === selectedReport.id ? updatedReport : r));
+      setSelectedReport(updatedReport);
+      
+      alert(language === 'en' ? "Review submitted successfully!" : "समीक्षा सफलतापूर्वक सबमिट की गई!");
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      alert(language === 'en' ? "Failed to submit review." : "समीक्षा सबमिट करने में विफल।");
     } finally {
-      setIsDownloadingHistory(false);
+      setIsSubmittingReview(false);
     }
   };
 
@@ -80,6 +100,74 @@ export default function ReportsPage() {
       themeColor: "#1A6B45",
     },
   ];
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData?.user?.id) {
+          setReports(mockHistoricalReports);
+          setIsLoading(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('disease_reports')
+          .select('*')
+          .eq('farmer_id', userData.user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const dbReports = data.map(dbReq => ({
+            id: dbReq.id,
+            type: "Disease Scan",
+            date: new Date(dbReq.created_at).toLocaleDateString(),
+            title: dbReq.disease_name,
+            severity: dbReq.severity_level.charAt(0).toUpperCase() + dbReq.severity_level.slice(1),
+            icon: ShieldAlert,
+            themeColor: dbReq.severity_level === 'high' || dbReq.severity_level === 'critical' ? "#C53030" : "#B67D14",
+            raw: dbReq
+          }));
+          setReports([...dbReports, ...mockHistoricalReports]);
+        } else {
+          setReports(mockHistoricalReports);
+        }
+      } catch (err) {
+        console.error("Error fetching reports:", err);
+        setReports(mockHistoricalReports);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
+
+  const handleDownloadMaster = async () => {
+    setIsDownloadingMaster(true);
+    try {
+      await downloadAsPDF("master-synthesis-report", "KisanAI_Master_Synthesis");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDownloadingMaster(false);
+    }
+  };
+
+  const handleDownloadHistory = async () => {
+    if (!selectedReport) return;
+    setIsDownloadingHistory(true);
+    try {
+      await downloadAsPDF("historical-report-content", `KisanAI_${selectedReport.title.replace(/\s+/g, '_')}`);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDownloadingHistory(false);
+    }
+  };
+
+
 
   return (
     <div className="pb-16 space-y-6 max-w-4xl mx-auto">
@@ -194,12 +282,17 @@ export default function ReportsPage() {
             {language === 'en' ? "Historical Records" : "ऐतिहासिक रिकॉर्ड"}
           </h2>
           <span className="font-mono text-xs text-muted">
-            {mockHistoricalReports.length} {language === 'en' ? "entries" : "प्रविष्टियां"}
+            {reports.length} {language === 'en' ? "entries" : "प्रविष्टियां"}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {mockHistoricalReports.map((report, idx) => {
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {reports.map((report, idx) => {
             const Icon = report.icon;
             return (
               <motion.div 
@@ -207,7 +300,7 @@ export default function ReportsPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 + (idx * 0.05) }}
-                onClick={() => setSelectedReport(report)}
+                onClick={() => handleSelectReport(report)}
                 className="group glass p-5 rounded-[1.5rem] border border-primary/10 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer"
               >
                 <div className="flex justify-between items-start mb-4">
@@ -235,7 +328,8 @@ export default function ReportsPage() {
               </motion.div>
             );
           })}
-        </div>
+          </div>
+        )}
       </motion.div>
 
       {/* ─── HISTORICAL REPORT MODAL ─── */}
@@ -282,12 +376,85 @@ export default function ReportsPage() {
               </div>
 
               <div className="space-y-4 text-sm text-text/80">
-                <p><strong>{language === 'en' ? "Summary:" : "सारांश:"}</strong> This historical record captures the state of the crop on {selectedReport.date}. Key interventions were recommended based on the data available at the time.</p>
-                <p><strong>{language === 'en' ? "Recommended Actions:" : "अनुशंसित कार्रवाई:"}</strong> Follow-up monitoring was advised to ensure crop stability. Yield projections were adjusted according to the {selectedReport.severity.toLowerCase()} severity level.</p>
+                {selectedReport.raw ? (
+                  <>
+                    <p><strong>{language === 'en' ? "Confidence:" : "आत्मविश्वास:"}</strong> {selectedReport.raw.confidence_score}%</p>
+                    <p><strong>{language === 'en' ? "Symptoms Detected:" : "लक्षण पाए गए:"}</strong> {selectedReport.raw.symptoms_detected?.join(', ')}</p>
+                    {selectedReport.raw.treatment_recs?.immediate && (
+                      <p><strong>{language === 'en' ? "Immediate Treatment:" : "तत्काल उपचार:"}</strong> {selectedReport.raw.treatment_recs.immediate.join(', ')}</p>
+                    )}
+                    {selectedReport.raw.treatment_recs?.chemical && (
+                      <p><strong>{language === 'en' ? "Chemical Treatment:" : "रासायनिक उपचार:"}</strong> {selectedReport.raw.treatment_recs.chemical.join(', ')}</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p><strong>{language === 'en' ? "Summary:" : "सारांश:"}</strong> This historical record captures the state of the crop on {selectedReport.date}. Key interventions were recommended based on the data available at the time.</p>
+                    <p><strong>{language === 'en' ? "Recommended Actions:" : "अनुशंसित कार्रवाई:"}</strong> Follow-up monitoring was advised to ensure crop stability. Yield projections were adjusted according to the {selectedReport.severity.toLowerCase()} severity level.</p>
+                  </>
+                )}
                 <div className="h-40 w-full rounded-xl bg-gray-50 border border-black/5 flex items-center justify-center text-muted mt-6">
                   [Historical Data Chart Placeholder]
                 </div>
               </div>
+
+              {/* Review Section (Only for Real Reports) */}
+              {selectedReport.raw && (
+                <div className="mt-8 pt-6 border-t border-black/5">
+                  <h4 className="font-display font-medium text-lg mb-4">
+                    {language === 'en' ? "Was this diagnosis helpful?" : "क्या यह निदान उपयोगी था?"}
+                  </h4>
+                  
+                  {selectedReport.raw?.user_rating ? (
+                    <div className="bg-primary/5 rounded-xl p-4">
+                      <div className="flex items-center gap-1 mb-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} className={`w-5 h-5 ${star <= selectedReport.raw.user_rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`} />
+                        ))}
+                      </div>
+                      {selectedReport.raw.user_feedback && (
+                        <p className="text-sm text-text/80 italic">"{selectedReport.raw.user_feedback}"</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-xl p-5 border border-black/5">
+                      <div className="flex items-center gap-2 mb-4">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            onClick={() => setRating(star)}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            className="focus:outline-none transition-transform hover:scale-110"
+                          >
+                            <Star className={`w-6 h-6 ${(hoverRating || rating) >= star ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`} />
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {rating > 0 && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+                          <textarea
+                            placeholder={language === 'en' ? "Any additional feedback?" : "कोई अतिरिक्त प्रतिक्रिया?"}
+                            className="w-full text-sm p-3 rounded-lg border border-black/10 focus:outline-none focus:border-primary mb-3 bg-white"
+                            rows={2}
+                            value={feedback}
+                            onChange={(e) => setFeedback(e.target.value)}
+                          />
+                          <button 
+                            onClick={handleSubmitReview}
+                            disabled={isSubmittingReview}
+                            className="bg-primary text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#153a27] transition-colors flex items-center gap-2"
+                          >
+                            {isSubmittingReview && <Loader2 className="w-4 h-4 animate-spin" />}
+                            {language === 'en' ? "Submit Review" : "समीक्षा सबमिट करें"}
+                          </button>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         </div>

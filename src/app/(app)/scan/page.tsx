@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Leaf, UploadCloud, ArrowRight, Zap, ScanLine, Camera, Image as ImageIcon, MapPin, Loader2 } from "lucide-react";
+import { Leaf, UploadCloud, ArrowRight, Zap, ScanLine, Camera, Image as ImageIcon, MapPin, Loader2, FileText } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
@@ -10,6 +10,7 @@ import ConsentPopup from "@/features/cropwatch/components/ConsentPopup";
 import { useFarmerStore } from "@/store/farmerStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 const MiniMap = dynamic(() => import("@/components/map/MiniMap"), { ssr: false });
 
@@ -78,10 +79,9 @@ export default function ScanPage() {
       if (typeof window !== "undefined" && "geolocation" in navigator && !geotagLocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            setLocation({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            });
+            const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
+            setLocation(loc);
+            setGeotagLocation(loc);
           },
           () => {}
         );
@@ -90,6 +90,66 @@ export default function ScanPage() {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setAnalyzing(false);
+    }
+  };
+
+  const saveReportToDatabase = async (reportData: any, loc: { lat: number; lng: number } | null) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
+      if (!userId) return; // Silent return if not logged in
+      
+      // Ensure the user exists in farmers table to satisfy foreign key
+      await supabase.from('farmers').upsert({ 
+        id: userId, 
+        full_name: userData?.user?.user_metadata?.full_name || 'Guest Farmer' 
+      }, { onConflict: 'id' });
+
+      // Build report payload
+      const severity = reportData.severity_level || 'moderate';
+      const validSeverity = ['low', 'moderate', 'high', 'critical'].includes(severity.toLowerCase()) 
+        ? severity.toLowerCase() : 'moderate';
+
+      const { error } = await supabase.from('disease_reports').insert({
+        farmer_id: userId,
+        image_url: 'placeholder_scan_image.jpg', // Dummy URL until Storage is hooked up
+        image_path: 'placeholder_scan_image.jpg',
+        crop_type: 'Unknown', // Could be added to AI prompt
+        disease_name: reportData.disease_name || 'Detected Issue',
+        confidence_score: reportData.confidence_score || 80,
+        severity_level: validSeverity,
+        symptoms_detected: reportData.symptoms_detected || [],
+        treatment_recs: reportData.treatment_recommendations || {},
+        prevention_measures: reportData.prevention_measures || [],
+        raw_ai_response: reportData,
+        latitude: loc?.lat || 23.26,
+        longitude: loc?.lng || 77.42,
+        is_verified: false
+      });
+
+      if (error) {
+        console.error("Failed to automatically save disease report:", error);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Error saving disease report:", error);
+      return false;
+    }
+  };
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveToReports = async () => {
+    if (!report) return;
+    setIsSaving(true);
+    const success = await saveReportToDatabase(report, geotagLocation);
+    setIsSaving(false);
+    if (success) {
+      router.push("/reports");
+    } else {
+      alert("Failed to save report.");
     }
   };
 
@@ -281,18 +341,28 @@ export default function ScanPage() {
           >
             <DiseaseReportCard report={report} />
             
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => { setReport(null); setPreview(null); setFile(null); setGeotagLocation(null); }}
+                  className="flex-1 py-4 text-primary bg-primary/5 hover:bg-primary/10 rounded-2xl font-medium transition-colors"
+                >
+                  Scan Another
+                </button>
+                <button 
+                  onClick={handleSaveReport}
+                  className="flex-1 py-4 text-white bg-primary hover:bg-[#153a27] rounded-2xl font-medium transition-colors shadow-md"
+                >
+                  Save to Map
+                </button>
+              </div>
               <button 
-                onClick={() => { setReport(null); setPreview(null); setFile(null); setGeotagLocation(null); }}
-                className="flex-1 py-4 text-primary bg-primary/5 hover:bg-primary/10 rounded-2xl font-medium transition-colors"
+                onClick={handleSaveToReports}
+                disabled={isSaving}
+                className="w-full py-4 text-white bg-[#0D1910] hover:bg-black rounded-2xl font-medium transition-colors shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                Scan Another
-              </button>
-              <button 
-                onClick={handleSaveReport}
-                className="flex-1 py-4 text-white bg-primary hover:bg-[#153a27] rounded-2xl font-medium transition-colors shadow-md"
-              >
-                Save to Map
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+                Save to Reports
               </button>
             </div>
           </motion.div>
