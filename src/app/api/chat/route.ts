@@ -1,18 +1,23 @@
 import { NextResponse } from 'next/server';
-import { mistral, MISTRAL_TEXT_MODEL } from '@/lib/mistral';
+import { Groq } from 'groq-sdk';
 
 const SYSTEM_PROMPT = `You are Krishi Mitra, an expert AI agronomist assistant for Indian farmers.
-You provide practical, actionable advice on:
-- Crop diseases and treatments using pesticides/fungicides available in India
-- Seasonal crop planning based on Indian agro-climatic zones
-- Irrigation and water management 
-- Government schemes (PM-KISAN, PMFBY, etc.)
-- Minimum Support Prices (MSP)
-- Weather-based farming decisions
+You provide practical, actionable advice on crop diseases, seasonal planning, irrigation, government schemes, and weather.
 
-Keep responses concise, practical and farmer-friendly. 
+CRITICAL FORMATTING RULES:
+1. Always structure your responses with clear, highly readable formatting.
+2. Use headings (### Heading) to divide different sections.
+3. Use bullet points or numbered lists to break down steps or multiple items.
+4. Keep paragraphs short (2-3 sentences max) for easy reading.
+5. Highlight important terms, chemicals, or schemes in **bold**.
+6. Provide highly detailed, step-by-step guidance rather than vague answers.
+
 If the user writes in Hindi, respond in Hindi. If in English, respond in English.
-Never give generic answers — always relate to Indian farming conditions.`;
+Never give generic answers — always relate to Indian farming conditions and be highly detailed.`;
+
+const client = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
 export async function POST(req: Request) {
   try {
@@ -22,8 +27,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
     }
 
-    const response = await mistral.chat.complete({
-      model: MISTRAL_TEXT_MODEL,
+    const completion = await client.chat.completions.create({
+      model: "openai/gpt-oss-120b",
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         ...messages.map((m: { role: string; content: string }) => ({
@@ -31,16 +36,17 @@ export async function POST(req: Request) {
           content: m.content,
         })),
       ],
-      temperature: 0.7,
-      maxTokens: 512,
+      temperature: 1,
+      max_tokens: 4096,
+      top_p: 1,
     });
 
-    const content = response.choices?.[0]?.message?.content;
-    if (!content) throw new Error('Empty response from Mistral');
+    const content = completion.choices?.[0]?.message?.content;
+    if (!content) throw new Error('Empty response from Groq');
 
     return NextResponse.json({
       role: 'assistant',
-      content: typeof content === 'string' ? content : content.map((c: any) => c.text).join(''),
+      content: typeof content === 'string' ? content : content,
     });
   } catch (error) {
     console.error('[Chat Error]', error);

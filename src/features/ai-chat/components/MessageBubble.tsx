@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 export default function MessageBubble({ message }: { message: any }) {
   const isUser = message.role === 'user';
@@ -28,8 +29,12 @@ export default function MessageBubble({ message }: { message: any }) {
           </div>
         )}
         
-        <div className={`whitespace-pre-wrap leading-relaxed ${isUser ? 'font-medium' : 'font-light'} text-[15px] md:text-base`}>
-          {message.content}
+        <div className={`leading-relaxed ${isUser ? 'font-medium whitespace-pre-wrap' : 'font-light prose prose-sm md:prose-base max-w-none prose-p:leading-relaxed prose-headings:text-primary prose-a:text-secondary'} text-[15px] md:text-base`}>
+          {isUser ? (
+            message.content
+          ) : (
+            <ReactMarkdown>{message.content}</ReactMarkdown>
+          )}
         </div>
       </div>
     </motion.div>
