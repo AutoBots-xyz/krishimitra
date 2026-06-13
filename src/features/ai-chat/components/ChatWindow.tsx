@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, MapPin, Leaf, Languages } from "lucide-react";
+import { Send, MapPin, Leaf, Languages, Sparkles } from "lucide-react";
 import MessageBubble from "@/features/ai-chat/components/MessageBubble";
 import { useLanguage } from "@/components/shared/LanguageProvider";
 import { useFarmerStore } from "@/store/farmerStore";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ChatWindow() {
   const { language, toggleLanguage } = useLanguage();
   const { profile } = useFarmerStore();
   const locationLabel = profile?.district && profile?.state
     ? `${profile.district}, ${profile.state}`
-    : "Your Location";
-  const cropLabel = profile?.primary_crop ?? "Your Crops";
+    : "Bhopal, MP";
+  const cropLabel = profile?.primary_crop ?? "Wheat & Soy";
+
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -25,7 +27,6 @@ export default function ChatWindow() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -59,83 +60,110 @@ export default function ChatWindow() {
     : ["What is the MSP for wheat?", "Best fertilizer for black soil", "My rice has blast disease"];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-130px)] md:h-[calc(100vh-100px)] -m-4 md:-m-8 bg-mist">
-      {/* Header */}
-      <div className="bg-white px-4 py-3 shadow-sm z-10 flex justify-between items-center shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-sky rounded-full flex items-center justify-center text-xl">👳🏽‍♂️</div>
+    <div className="flex flex-col h-[calc(100vh-130px)] md:h-[calc(100vh-100px)] -m-4 md:-m-8 bg-transparent relative">
+      
+      {/* ─── EDITORIAL HEADER ─── */}
+      <div className="px-6 py-5 md:py-8 z-10 shrink-0 border-b border-primary/5 bg-background/80 backdrop-blur-xl">
+        <div className="max-w-3xl mx-auto flex justify-between items-start">
           <div>
-            <h1 className="font-display text-heading-3 text-soil leading-tight">Krishi Mitra</h1>
-            <p className="text-xs text-neutral-400">AI Agronomist • Online</p>
-          </div>
-        </div>
-        <button 
-          onClick={toggleLanguage} 
-          className="flex items-center gap-1 text-xs font-semibold text-indigo bg-sky/50 px-3 py-1.5 rounded-pill"
-        >
-          <Languages className="w-4 h-4" /> {language === 'en' ? 'हिन्दी' : 'English'}
-        </button>
-      </div>
-
-      {/* Context Chips */}
-      <div className="px-4 py-2 flex gap-2 overflow-x-auto shrink-0 bg-mist border-b border-neutral-100 shadow-sm">
-        <div className="flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-md text-neutral-800 shadow-low whitespace-nowrap">
-          <MapPin className="w-3 h-3 text-harvest" /> {locationLabel}
-        </div>
-        <div className="flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-md text-neutral-800 shadow-low whitespace-nowrap">
-          <Leaf className="w-3 h-3 text-leaf" /> {cropLabel}
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, i) => (
-          <MessageBubble key={i} message={msg} />
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-white shadow-low text-neutral-800 rounded-2xl rounded-bl-sm px-4 py-3 border border-neutral-100 flex items-center gap-1">
-              <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-secondary mb-2 flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3" /> AI Agronomist
+            </span>
+            <h1 className="font-display text-4xl text-primary font-bold leading-tight">Krishi Mitra</h1>
+            
+            {/* Context chips */}
+            <div className="flex gap-2 mt-4 flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs px-3 py-1 bg-primary/5 text-primary rounded-full font-medium">
+                <MapPin className="w-3 h-3 text-secondary" /> {locationLabel}
+              </div>
+              <div className="flex items-center gap-1.5 text-xs px-3 py-1 bg-primary/5 text-primary rounded-full font-medium">
+                <Leaf className="w-3 h-3 text-success" /> {cropLabel}
+              </div>
             </div>
           </div>
-        )}
-        <div ref={bottomRef} />
+
+          <button 
+            onClick={toggleLanguage} 
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm border border-primary/10 text-primary hover:bg-primary/5 transition-colors"
+            title="Toggle Language"
+          >
+            <Languages className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Input */}
-      <div className="p-4 bg-white border-t border-neutral-100 shrink-0">
-        {messages.length === 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar">
-            {suggestions.map((sug, i) => (
-              <button 
-                key={i} 
-                onClick={() => setInput(sug)}
-                className="whitespace-nowrap text-xs bg-sky text-indigo px-3 py-2 rounded-pill font-medium hover:bg-sky/80 transition"
-              >
-                {sug}
-              </button>
+      {/* ─── MESSAGES AREA ─── */}
+      <div className="flex-1 overflow-y-auto px-4 py-8 md:px-8 relative no-scrollbar">
+        <div className="max-w-3xl mx-auto space-y-8">
+          <AnimatePresence initial={false}>
+            {messages.map((msg, i) => (
+              <MessageBubble key={i} message={msg} />
             ))}
-          </div>
-        )}
-        <form onSubmit={handleSend} className="flex gap-2">
-          <input
-            type="text"
-            placeholder={language === 'hi' ? "अपना सवाल पूछें..." : "Type your question..."}
-            className="flex-1 bg-mist border-0 rounded-full px-5 py-3 text-sm focus:ring-2 focus:ring-indigo outline-none"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-          />
-          <button 
-            type="submit" 
-            disabled={!input.trim() || loading}
-            className="w-12 h-12 bg-harvest text-soil rounded-full flex items-center justify-center disabled:opacity-50 hover:bg-harvest/90 transition-colors shrink-0 shadow-mid"
-          >
-            <Send className="w-5 h-5 ml-1" />
-          </button>
-        </form>
+          </AnimatePresence>
+
+          {loading && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-start"
+            >
+              <div className="glass text-text rounded-2xl rounded-tl-sm px-6 py-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-secondary rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+              </div>
+            </motion.div>
+          )}
+          <div ref={bottomRef} className="h-10" />
+        </div>
       </div>
+
+      {/* ─── FLOATING INPUT DOCK ─── */}
+      <div className="shrink-0 pb-6 px-4 md:pb-8 md:px-8 z-20 pointer-events-none">
+        <div className="max-w-3xl mx-auto pointer-events-auto">
+          
+          {/* Suggestions */}
+          {messages.length === 1 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="flex gap-2 overflow-x-auto pb-4 no-scrollbar"
+            >
+              {suggestions.map((sug, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => setInput(sug)}
+                  className="whitespace-nowrap text-[13px] bg-white border border-primary/10 text-text px-4 py-2 rounded-full font-medium shadow-sm hover:border-secondary transition-colors"
+                >
+                  {sug}
+                </button>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Input Form */}
+          <form onSubmit={handleSend} className="relative group">
+            <div className="absolute inset-0 bg-primary/5 blur-xl rounded-full transition-opacity opacity-0 group-hover:opacity-100" />
+            <div className="relative flex items-center glass rounded-full p-2 border border-primary/15 shadow-lg bg-white/70">
+              <input
+                type="text"
+                placeholder={language === 'hi' ? "अपना सवाल यहाँ लिखें..." : "Ask your agronomy question..."}
+                className="flex-1 bg-transparent px-5 py-3 text-base text-text placeholder:text-muted/60 focus:outline-none"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
+              <button 
+                type="submit" 
+                disabled={!input.trim() || loading}
+                className="w-[52px] h-[52px] bg-primary text-white rounded-full flex items-center justify-center disabled:bg-black disabled:text-white hover:bg-[#153a27] transition-all shrink-0 shadow-md"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
     </div>
   );
 }
