@@ -1,85 +1,125 @@
 "use client";
 
-import { CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Droplets, ShieldCheck, Zap } from "lucide-react";
 
 export default function DiseaseReportCard({ report }: { report: any }) {
-  const getSeverityColor = (level: string) => {
-    switch(level) {
-      case 'low': return 'bg-leaf text-white';
-      case 'moderate': return 'bg-alert-amber text-white';
-      case 'high': 
-      case 'critical': return 'bg-alert-red text-white animate-pulse';
-      default: return 'bg-neutral-400 text-white';
-    }
-  };
+  const isHighRisk = report.severity_level === 'high' || report.severity_level === 'critical';
+  const themeColor = isHighRisk ? '#C53030' : '#C8800F';
+  const themeBg = isHighRisk ? 'linear-gradient(135deg, #fff1f0 0%, #ffe4e1 100%)' : 'linear-gradient(135deg, #fdf6ec 0%, #fef3e2 100%)';
 
   return (
-    <div className="bg-white rounded-xl shadow-mid border border-neutral-100 overflow-hidden">
-      <div className="p-5 border-b border-neutral-100 bg-mist">
-        <div className="flex justify-between items-start mb-2">
-          <h2 className="font-display text-heading-2 text-soil">{report.disease_name}</h2>
-          <span className={`px-3 py-1 rounded-pill text-xs font-bold uppercase tracking-wider ${getSeverityColor(report.severity_level)}`}>
-            {report.severity_level}
-          </span>
-        </div>
+    <div className="flex flex-col gap-4">
+      
+      {/* ─── HEADER BENTO ─── */}
+      <div className="relative overflow-hidden rounded-[2rem] p-6 md:p-8"
+        style={{ background: themeBg, border: `1px solid ${themeColor}25` }}>
+        <div className="absolute top-0 right-0 w-48 h-48 opacity-10"
+          style={{ background: `radial-gradient(circle at top right, ${themeColor} 0%, transparent 70%)` }} />
         
-        <div className="flex items-center gap-2 mt-3">
-          <span className="text-sm text-neutral-800">Confidence:</span>
-          <div className="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden flex">
-            <div 
-              className="h-full bg-harvest transition-all duration-1000" 
-              style={{ width: `${report.confidence_score}%` }}
-            ></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-6">
+            <span className="font-mono text-[10px] tracking-[0.15em] uppercase block" style={{ color: themeColor }}>
+              Diagnosis Complete
+            </span>
+            <span className="px-3 py-1 rounded-full font-mono text-[10px] tracking-widest uppercase font-bold text-white shadow-sm"
+              style={{ backgroundColor: themeColor }}>
+              {report.severity_level} Risk
+            </span>
           </div>
-          <span className="font-mono text-sm font-medium">{report.confidence_score}%</span>
+
+          <h2 className="font-display font-bold text-[2.5rem] md:text-[3rem] leading-[1.05] text-[#0D1910] mb-8">
+            {report.disease_name}
+          </h2>
+
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-xs text-[#0D1910]/60 font-medium mb-2 uppercase tracking-wide">AI Confidence</p>
+              <div className="flex items-center gap-3">
+                <span className="font-display text-4xl font-semibold" style={{ color: themeColor }}>
+                  {report.confidence_score}<span className="text-2xl text-[#0D1910]/30">%</span>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="p-5 space-y-6">
-        <div>
-          <h3 className="flex items-center gap-2 font-semibold text-soil mb-2">
-            <AlertTriangle className="w-5 h-5 text-alert-amber" /> Symptoms Detected
-          </h3>
-          <ul className="list-disc list-inside text-neutral-800 space-y-1 text-sm">
+      {/* ─── DETAILS GRID ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        {/* Symptoms */}
+        <div className="glass rounded-[1.5rem] p-6 border border-primary/10 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4 text-primary" />
+            </div>
+            <h3 className="font-display text-xl font-semibold text-primary">Symptoms</h3>
+          </div>
+          <ul className="space-y-3">
             {report.symptoms_detected.map((sym: string, i: number) => (
-              <li key={i}>{sym}</li>
+              <li key={i} className="flex items-start gap-2 text-sm text-text/80 leading-relaxed">
+                <span className="text-primary mt-1 opacity-50">•</span>
+                {sym}
+              </li>
             ))}
           </ul>
         </div>
 
-        <div>
-          <h3 className="flex items-center gap-2 font-semibold text-soil mb-2">
-            <CheckCircle2 className="w-5 h-5 text-indigo" /> Treatment
-          </h3>
-          <div className="space-y-3">
+        {/* Prevention */}
+        <div className="glass rounded-[1.5rem] p-6 border border-primary/10 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+            </div>
+            <h3 className="font-display text-xl font-semibold text-primary">Prevention</h3>
+          </div>
+          <ul className="space-y-3">
+            {report.prevention_measures.map((prev: string, i: number) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-text/80 leading-relaxed">
+                <span className="text-primary mt-1 opacity-50">•</span>
+                {prev}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Treatment Protocol (Spans full width) */}
+        <div className="md:col-span-2 glass rounded-[1.5rem] p-6 border border-primary/10 shadow-sm mt-2">
+          <h3 className="font-display text-2xl font-semibold text-primary mb-6">Treatment Protocol</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {report.treatment_recommendations.immediate && (
-              <div className="bg-alert-red/10 border-l-2 border-alert-red p-3 rounded-r text-sm text-neutral-800">
-                <strong>Immediate:</strong> {report.treatment_recommendations.immediate.join(", ")}
+              <div className="rounded-xl p-5" style={{ background: 'linear-gradient(180deg, #fff1f0 0%, #fff 100%)', border: '1px solid rgba(197,48,48,0.1)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="w-4 h-4 text-[#C53030]" />
+                  <span className="font-mono text-[10px] tracking-widest uppercase font-semibold text-[#C53030]">Immediate</span>
+                </div>
+                <p className="text-sm text-text/90 leading-relaxed">{report.treatment_recommendations.immediate.join(", ")}</p>
               </div>
             )}
+            
             {report.treatment_recommendations.chemical && (
-              <div className="bg-sky/50 border-l-2 border-indigo p-3 rounded-r text-sm text-neutral-800">
-                <strong>Chemical:</strong> {report.treatment_recommendations.chemical.join(", ")}
+              <div className="rounded-xl p-5" style={{ background: 'linear-gradient(180deg, #f0f4ff 0%, #fff 100%)', border: '1px solid rgba(26,71,49,0.1)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Droplets className="w-4 h-4 text-[#1A4731]" />
+                  <span className="font-mono text-[10px] tracking-widest uppercase font-semibold text-[#1A4731]">Chemical</span>
+                </div>
+                <p className="text-sm text-text/90 leading-relaxed">{report.treatment_recommendations.chemical.join(", ")}</p>
               </div>
             )}
+            
             {report.treatment_recommendations.organic && (
-              <div className="bg-leaf/10 border-l-2 border-leaf p-3 rounded-r text-sm text-neutral-800">
-                <strong>Organic:</strong> {report.treatment_recommendations.organic.join(", ")}
+              <div className="rounded-xl p-5" style={{ background: 'linear-gradient(180deg, #e8f5ee 0%, #fff 100%)', border: '1px solid rgba(26,107,69,0.1)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Leaf className="w-4 h-4 text-[#1A6B45]" />
+                  <span className="font-mono text-[10px] tracking-widest uppercase font-semibold text-[#1A6B45]">Organic</span>
+                </div>
+                <p className="text-sm text-text/90 leading-relaxed">{report.treatment_recommendations.organic.join(", ")}</p>
               </div>
             )}
           </div>
         </div>
 
-        <div>
-          <h3 className="flex items-center gap-2 font-semibold text-soil mb-2">
-            <ShieldCheck className="w-5 h-5 text-leaf" /> Prevention
-          </h3>
-          <ul className="list-disc list-inside text-neutral-800 space-y-1 text-sm">
-            {report.prevention_measures.map((prev: string, i: number) => (
-              <li key={i}>{prev}</li>
-            ))}
-          </ul>
-        </div>
       </div>
     </div>
   );

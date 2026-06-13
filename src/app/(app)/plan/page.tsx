@@ -131,54 +131,57 @@ export default function PlanPage() {
 
     return (
       <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in pb-20">
-        <h1 className="font-display text-heading-1 text-soil">{t.advancedPlan}</h1>
+        <div className="mb-6">
+          <p className="eyebrow mb-2">FARM PLAN</p>
+          <h1 className="font-display text-[36px] text-primary font-bold">{t.advancedPlan}</h1>
+        </div>
         
         {crops.map((crop: any, index: number) => (
-          <div key={index} className="bg-white rounded-xl shadow-mid border border-neutral-100 overflow-hidden mb-6">
-            <div className="bg-harvest text-soil p-4 flex justify-between items-center">
-              <h2 className="font-bold text-lg flex items-center gap-2">
-                <Leaf /> {t.topRecommendation} #{index + 1}: {crop.crop_name}
+          <div key={index} className="glass rounded-xl shadow-sm border border-primary/10 overflow-hidden mb-6">
+            <div className="bg-secondary/20 text-primary p-4 flex justify-between items-center border-b border-primary/10">
+              <h2 className="font-display font-bold text-xl flex items-center gap-2">
+                <Leaf className="w-5 h-5 text-primary" /> {t.topRecommendation} #{index + 1}: {crop.crop_name}
               </h2>
-              <span className="bg-white/40 px-3 py-1 rounded-full text-sm font-semibold">{t.score}: {crop.suitability_score}/100</span>
+              <span className="glass px-3 py-1 rounded-full font-mono text-[13px] border border-primary/20">{t.score}: {crop.suitability_score}/100</span>
             </div>
             
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Basic Info */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-soil border-b pb-2">{t.cropDetails}</h3>
-                <div className="flex justify-between"><span className="text-neutral-500">{t.variety}</span><span className="font-medium">{crop.variety}</span></div>
-                <div className="flex justify-between"><span className="text-neutral-500">{t.sowingWindow}</span><span className="font-medium">{crop.sowing_window}</span></div>
-                <div className="flex justify-between"><span className="text-neutral-500">{t.harvestWindow}</span><span className="font-medium">{crop.harvest_window}</span></div>
-                <div className="flex justify-between"><span className="text-neutral-500">{t.expectedYield}</span><span className="font-medium">{crop.expected_yield}</span></div>
-                <div className="flex justify-between"><span className="text-neutral-500">{t.totalWaterNeed}</span><span className="font-medium">{crop.total_water_requirement}</span></div>
+                <h3 className="font-body font-semibold text-[14px] text-primary border-b border-primary/10 pb-2">{t.cropDetails}</h3>
+                <div className="flex justify-between"><span className="text-muted font-body text-sm">{t.variety}</span><span className="font-mono text-sm text-text">{crop.variety}</span></div>
+                <div className="flex justify-between"><span className="text-muted font-body text-sm">{t.sowingWindow}</span><span className="font-mono text-sm text-text">{crop.sowing_window}</span></div>
+                <div className="flex justify-between"><span className="text-muted font-body text-sm">{t.harvestWindow}</span><span className="font-mono text-sm text-text">{crop.harvest_window}</span></div>
+                <div className="flex justify-between"><span className="text-muted font-body text-sm">{t.expectedYield}</span><span className="font-mono text-sm text-text">{crop.expected_yield}</span></div>
+                <div className="flex justify-between"><span className="text-muted font-body text-sm">{t.totalWaterNeed}</span><span className="font-mono text-sm text-text">{crop.total_water_requirement}</span></div>
               </div>
 
               {/* Financials */}
-              <div className="space-y-4 bg-mist p-4 rounded-xl">
-                <h3 className="font-semibold text-soil border-b border-neutral-300 pb-2">{t.financialEstimate}</h3>
-                <div className="flex justify-between"><span className="text-neutral-500">{t.estIncome}</span><span className="font-medium text-leaf">{crop.estimated_income}</span></div>
-                <div className="flex justify-between"><span className="text-neutral-500">{t.inputCost}</span><span className="font-medium text-alert-amber">{crop.input_cost_breakdown?.total_estimated_cost}</span></div>
-                <div className="flex justify-between text-lg"><span className="font-bold text-soil">{t.netProfit}</span><span className="font-bold text-indigo">{crop.estimated_net_profit}</span></div>
-                <div className="text-xs text-neutral-500 mt-2 text-right">{t.margin}: {crop.profit_margin_percent}% | {t.breakEven}: {crop.break_even_point}</div>
+              <div className="space-y-4 glass p-4 rounded-xl border border-primary/10 border-l-4 border-l-primary">
+                <h3 className="font-body font-semibold text-[14px] text-primary border-b border-primary/10 pb-2">{t.financialEstimate}</h3>
+                <div className="flex justify-between"><span className="text-muted font-body text-sm">{t.estIncome}</span><span className="font-mono text-sm text-success font-medium">{crop.estimated_income}</span></div>
+                <div className="flex justify-between"><span className="text-muted font-body text-sm">{t.inputCost}</span><span className="font-mono text-sm text-warning font-medium">{crop.input_cost_breakdown?.total_estimated_cost}</span></div>
+                <div className="flex justify-between mt-2 pt-2 border-t border-primary/10"><span className="font-body font-bold text-primary">{t.netProfit}</span><span className="font-mono text-base font-bold text-primary">{crop.estimated_net_profit}</span></div>
+                <div className="font-mono text-[11px] text-muted text-right uppercase tracking-wider">{t.margin}: {crop.profit_margin_percent}% | {t.breakEven}: {crop.break_even_point}</div>
               </div>
             </div>
 
             {/* Risk & Sustainability */}
-            <div className="p-6 border-t border-neutral-100 bg-neutral-50 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 border-t border-primary/10 glass grid grid-cols-1 md:grid-cols-2 gap-6">
                <div>
-                 <h3 className="font-semibold text-soil mb-3">{t.riskAssessment}</h3>
-                 <div className="flex gap-2 mb-2">
-                   <span className={`text-xs px-2 py-1 rounded-full ${crop.risk_assessment?.weather_risk === 'high' ? 'bg-alert-red/20 text-alert-red' : 'bg-neutral-200'}`}>{t.weather}: {crop.risk_assessment?.weather_risk}</span>
-                   <span className={`text-xs px-2 py-1 rounded-full ${crop.risk_assessment?.market_risk === 'high' ? 'bg-alert-red/20 text-alert-red' : 'bg-neutral-200'}`}>{t.market}: {crop.risk_assessment?.market_risk}</span>
-                   <span className={`text-xs px-2 py-1 rounded-full ${crop.risk_assessment?.pest_risk === 'high' ? 'bg-alert-red/20 text-alert-red' : 'bg-neutral-200'}`}>{t.pest}: {crop.risk_assessment?.pest_risk}</span>
+                 <h3 className="font-body font-semibold text-[14px] text-primary mb-3">{t.riskAssessment}</h3>
+                 <div className="flex gap-2 mb-3">
+                   <span className={`font-mono text-[10px] uppercase px-2.5 py-1 rounded-full ${crop.risk_assessment?.weather_risk === 'high' ? 'bg-error/10 text-error border border-error/20' : 'glass border border-primary/10 text-muted'}`}>{t.weather}: {crop.risk_assessment?.weather_risk}</span>
+                   <span className={`font-mono text-[10px] uppercase px-2.5 py-1 rounded-full ${crop.risk_assessment?.market_risk === 'high' ? 'bg-error/10 text-error border border-error/20' : 'glass border border-primary/10 text-muted'}`}>{t.market}: {crop.risk_assessment?.market_risk}</span>
+                   <span className={`font-mono text-[10px] uppercase px-2.5 py-1 rounded-full ${crop.risk_assessment?.pest_risk === 'high' ? 'bg-error/10 text-error border border-error/20' : 'glass border border-primary/10 text-muted'}`}>{t.pest}: {crop.risk_assessment?.pest_risk}</span>
                  </div>
-                 <p className="text-sm text-neutral-600">{crop.risk_assessment?.notes}</p>
+                 <p className="font-body font-light text-[13px] text-text leading-relaxed">{crop.risk_assessment?.notes}</p>
                </div>
                <div>
-                 <h3 className="font-semibold text-soil mb-3">{t.sustainabilityBadges}</h3>
+                 <h3 className="font-body font-semibold text-[14px] text-primary mb-3">{t.sustainabilityBadges}</h3>
                  <div className="flex flex-wrap gap-2">
                     {crop.sustainability_badges?.map((badge: string, i: number) => (
-                      <span key={i} className="text-xs px-2 py-1 bg-leaf/20 text-leaf font-medium rounded-md">{badge}</span>
+                      <span key={i} className="font-mono text-[10px] uppercase px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 rounded-md">{badge}</span>
                     ))}
                  </div>
                </div>
@@ -189,15 +192,15 @@ export default function PlanPage() {
         {/* Additional Insights */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {result.alternative_crop_option && (
-            <div className="bg-white p-5 rounded-xl shadow-low border border-neutral-100">
-              <h3 className="font-semibold text-soil mb-2">{t.backupOption}: {result.alternative_crop_option.crop_name}</h3>
-              <p className="text-sm text-neutral-600">{result.alternative_crop_option.reason}</p>
+            <div className="glass p-5 rounded-xl shadow-sm border border-primary/10 hover:-translate-y-1 transition-transform">
+              <h3 className="font-body font-semibold text-[14px] text-primary mb-2">{t.backupOption}: <span className="font-display font-bold text-[18px]">{result.alternative_crop_option.crop_name}</span></h3>
+              <p className="font-body font-light text-[14px] text-text leading-relaxed">{result.alternative_crop_option.reason}</p>
             </div>
           )}
           {result.soil_health_impact_note && (
-            <div className="bg-white p-5 rounded-xl shadow-low border border-neutral-100">
-              <h3 className="font-semibold text-soil mb-2">{t.soilHealthImpact}</h3>
-              <p className="text-sm text-neutral-600">{result.soil_health_impact_note}</p>
+            <div className="glass p-5 rounded-xl shadow-sm border border-primary/10 hover:-translate-y-1 transition-transform border-l-4 border-l-success">
+              <h3 className="font-body font-semibold text-[14px] text-primary mb-2">{t.soilHealthImpact}</h3>
+              <p className="font-body font-light text-[14px] text-text leading-relaxed">{result.soil_health_impact_note}</p>
             </div>
           )}
         </div>
@@ -208,51 +211,56 @@ export default function PlanPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className="max-w-xl mx-auto space-y-6 pb-20">
       <div className="mb-8">
-        <h1 className="font-display text-heading-1 text-soil">{t.newFarmPlan}</h1>
+        <p className="eyebrow mb-2">FARM PLAN</p>
+        <h1 className="font-display text-[36px] text-primary font-bold">{t.newFarmPlan}</h1>
         <div className="flex gap-2 mt-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className={`h-2 flex-1 rounded-full ${step >= i ? 'bg-harvest' : 'bg-neutral-100'}`} />
+            <div key={i} className={`h-1.5 flex-1 rounded-full ${step >= i ? 'bg-secondary' : 'bg-primary/10'}`} />
           ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-low p-6">
+      <div className="glass rounded-xl shadow-sm border border-primary/10 p-6 md:p-8">
         {step === 1 && (
-          <div className="space-y-4 animate-in slide-in-from-right-4">
-            <h2 className="font-semibold text-lg text-soil">{t.whatIsLandSize}</h2>
+          <div className="space-y-6 animate-in slide-in-from-right-4">
+            <h2 className="font-display text-[24px] text-primary font-bold">{t.whatIsLandSize}</h2>
             <input 
               type="number" 
               placeholder="e.g. 5"
-              className="w-full h-14 border border-neutral-400 rounded-md px-4 text-lg"
+              className="w-full h-14 glass border border-primary/20 rounded-md px-4 text-lg font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
               value={formData.landSize}
               onChange={(e) => setFormData({...formData, landSize: e.target.value})}
             />
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1">{t.acres}</Button>
-              <Button variant="ghost" className="flex-1">{t.hectares}</Button>
+              <Button variant="outline" className="flex-1 text-[13px]">{t.acres}</Button>
+              <Button variant="ghost" className="flex-1 text-[13px]">{t.hectares}</Button>
             </div>
-            <Button className="w-full mt-4" onClick={() => setStep(2)}>{t.next} <ChevronRight className="w-4 h-4 ml-1" /></Button>
+            <div className="pt-2">
+              <Button className="w-full" onClick={() => setStep(2)}>{t.next} <ChevronRight className="w-4 h-4 ml-1" /></Button>
+            </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-4 animate-in slide-in-from-right-4">
-            <h2 className="font-semibold text-lg text-soil">{t.selectSoilType}</h2>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-6 animate-in slide-in-from-right-4">
+            <h2 className="font-display text-[24px] text-primary font-bold">{t.selectSoilType}</h2>
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               {['Black Cotton', 'Alluvial', 'Red Soil', 'Laterite'].map(soil => (
                 <div 
                   key={soil} 
                   onClick={() => setFormData({...formData, soilType: soil})}
-                  className={`p-4 border rounded-lg cursor-pointer flex flex-col items-center gap-2 ${formData.soilType === soil ? 'border-harvest bg-harvest/10 text-soil font-semibold' : 'border-neutral-400 text-neutral-800'}`}
+                  className={`p-4 border rounded-xl cursor-pointer flex flex-col items-center gap-3 transition-colors ${formData.soilType === soil ? 'border-secondary bg-secondary/10 text-primary font-medium shadow-sm' : 'border-primary/20 text-muted hover:border-primary/40 glass'}`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-soil opacity-20"></div>
-                  {soil}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${formData.soilType === soil ? 'bg-secondary/20' : 'bg-primary/5'}`}>
+                    <Leaf className={`w-5 h-5 ${formData.soilType === soil ? 'text-secondary' : 'text-primary/40'}`} />
+                  </div>
+                  <span className="font-body text-[14px] text-center">{soil}</span>
                 </div>
               ))}
             </div>
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-3 mt-6 pt-2 border-t border-primary/10">
               <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>{t.back}</Button>
               <Button className="flex-1" onClick={() => setStep(3)}>{t.next}</Button>
             </div>
@@ -260,21 +268,21 @@ export default function PlanPage() {
         )}
 
         {step === 3 && (
-          <div className="space-y-4 animate-in slide-in-from-right-4">
-            <h2 className="font-semibold text-lg text-soil">{t.waterAvailability}</h2>
+          <div className="space-y-6 animate-in slide-in-from-right-4">
+            <h2 className="font-display text-[24px] text-primary font-bold">{t.waterAvailability}</h2>
             <div className="space-y-3">
               {['Rainfed (Monsoon only)', 'Canal Irrigation', 'Borewell / Tube well'].map(water => (
                 <div 
                   key={water} 
                   onClick={() => setFormData({...formData, waterSource: water})}
-                  className={`p-4 border rounded-lg cursor-pointer flex justify-between items-center ${formData.waterSource === water ? 'border-indigo bg-sky text-indigo font-semibold' : 'border-neutral-400 text-neutral-800'}`}
+                  className={`p-4 border rounded-xl cursor-pointer flex justify-between items-center transition-colors ${formData.waterSource === water ? 'border-primary bg-primary/5 text-primary font-medium shadow-sm' : 'border-primary/20 text-muted hover:border-primary/40 glass'}`}
                 >
-                  {water}
-                  {formData.waterSource === water && <CheckCircle2 className="w-5 h-5" />}
+                  <span className="font-body text-[14px]">{water}</span>
+                  {formData.waterSource === water && <CheckCircle2 className="w-5 h-5 text-primary" />}
                 </div>
               ))}
             </div>
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-3 mt-6 pt-2 border-t border-primary/10">
               <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>{t.back}</Button>
               <Button className="flex-1" onClick={handleSubmit} disabled={loading}>
                 {loading ? t.generatingPlan : t.generateAIPlan}
@@ -282,20 +290,20 @@ export default function PlanPage() {
             </div>
 
             {/* Advanced Details Toggle */}
-            <div className="pt-6 mt-6 border-t border-neutral-200">
+            <div className="pt-6 mt-6 border-t border-primary/10">
               <button 
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="text-indigo font-medium text-sm flex items-center gap-1 hover:underline"
+                className="text-primary font-body font-medium text-[13px] flex items-center gap-1 hover:underline"
               >
                 {showAdvanced ? t.hideAdvanced : t.advancedDetailsToggle}
               </button>
               
               {showAdvanced && (
-                <div className="mt-4 space-y-4 bg-mist p-4 rounded-xl border border-neutral-200 animate-in slide-in-from-top-2">
+                <div className="mt-4 space-y-4 glass p-5 rounded-xl border border-primary/10 animate-in slide-in-from-top-2">
                   
                   <div>
-                    <label className="text-sm font-medium text-soil block mb-1">{t.budget}</label>
-                    <select className="w-full h-10 border rounded-md px-3" value={formData.budgetLevel} onChange={e => setFormData({...formData, budgetLevel: e.target.value})}>
+                    <label className="text-[13px] font-body text-muted block mb-1.5">{t.budget}</label>
+                    <select className="w-full h-12 glass border border-primary/20 rounded-md px-3 font-body text-text focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary" value={formData.budgetLevel} onChange={e => setFormData({...formData, budgetLevel: e.target.value})}>
                       <option value="">{t.select}</option>
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -304,8 +312,8 @@ export default function PlanPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-soil block mb-1">{t.labor}</label>
-                    <select className="w-full h-10 border rounded-md px-3" value={formData.laborAvailability} onChange={e => setFormData({...formData, laborAvailability: e.target.value})}>
+                    <label className="text-[13px] font-body text-muted block mb-1.5">{t.labor}</label>
+                    <select className="w-full h-12 glass border border-primary/20 rounded-md px-3 font-body text-text focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary" value={formData.laborAvailability} onChange={e => setFormData({...formData, laborAvailability: e.target.value})}>
                       <option value="">{t.select}</option>
                       <option value="Family labor only">Family labor only</option>
                       <option value="Hired labor available">Hired labor available</option>
@@ -314,8 +322,8 @@ export default function PlanPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-soil block mb-1">{t.riskAppetite}</label>
-                    <select className="w-full h-10 border rounded-md px-3" value={formData.riskAppetite} onChange={e => setFormData({...formData, riskAppetite: e.target.value})}>
+                    <label className="text-[13px] font-body text-muted block mb-1.5">{t.riskAppetite}</label>
+                    <select className="w-full h-12 glass border border-primary/20 rounded-md px-3 font-body text-text focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary" value={formData.riskAppetite} onChange={e => setFormData({...formData, riskAppetite: e.target.value})}>
                       <option value="">{t.select}</option>
                       <option value="Low (Stable staples)">Low (Stable staples)</option>
                       <option value="Medium">Medium</option>

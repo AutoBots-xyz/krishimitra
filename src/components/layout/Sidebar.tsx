@@ -25,9 +25,9 @@ export default function Sidebar({ isOpen, toggleSidebar }: { isOpen: boolean; to
         />
       )}
       
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-white shadow-mid transition-transform duration-300 md:static md:translate-x-0 flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 transform glass shadow-sm transition-transform duration-300 md:static md:translate-x-0 flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-16 shrink-0 items-center px-6">
-          <span className="font-display text-2xl font-bold text-soil">KrishiMitra</span>
+          <span className="font-display text-2xl font-bold text-primary">KrishiMitra</span>
         </div>
         
         <nav className="flex-1 space-y-1 px-4 py-4">
@@ -39,9 +39,9 @@ export default function Sidebar({ isOpen, toggleSidebar }: { isOpen: boolean; to
                 key={item.name}
                 href={item.href}
                 className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive 
-                    ? "bg-sky text-indigo" 
-                    : "text-neutral-800 hover:bg-neutral-100"
+                  isActive
+                    ? "glass text-primary" 
+                    : "text-muted hover:bg-primary/5 hover:text-primary"
                 }`}
               >
                 <Icon className="h-5 w-5" />

@@ -11,39 +11,36 @@ export default function ConsentPopup({ onClose }: { onClose: () => void }) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     } else {
-      // Auto-consent
       handleConsent(true);
     }
   }, [countdown]);
 
   const handleConsent = (agreed: boolean) => {
-    // TODO: save consent to disease_reports in database
-    // supabase.from('disease_reports').update({ consented_to_share: agreed, consent_method: 'explicit', consent_timestamp: new Date().toISOString() })
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-sm rounded-xl shadow-high overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="h-1 bg-neutral-100 w-full">
+      <div className="glass max-w-sm w-full rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="h-[4px] bg-primary/10 w-full">
           <div 
-            className="h-full bg-harvest transition-all duration-1000 ease-linear" 
+            className="h-full bg-secondary rounded-full transition-all duration-300 ease-linear" 
             style={{ width: `${(countdown / 4) * 100}%` }}
           ></div>
         </div>
         
-        <div className="p-6 text-center">
-          <div className="text-4xl mb-4">🌾</div>
-          <h3 className="font-display text-heading-2 text-soil mb-2">Help your community</h3>
-          <p className="text-sm text-neutral-800 mb-6">
+        <div className="p-6 md:p-8 text-center flex flex-col items-center">
+          <div className="text-[48px] mb-4 leading-none">🌾</div>
+          <h3 className="font-display text-[24px] text-primary font-bold mb-3 leading-tight">Help your community</h3>
+          <p className="font-body font-light text-[14px] text-muted mb-6 leading-relaxed">
             Share this detection anonymously with CropWatch to help nearby farmers. No personal data is shared.
           </p>
           
-          <div className="text-xs text-neutral-400 mb-4">
-            Auto-sharing in [{countdown}]...
+          <div className="font-mono text-[12px] text-muted mb-6 uppercase tracking-widest">
+            Auto-sharing in [{countdown}]
           </div>
           
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3 w-full">
             <Button onClick={() => handleConsent(true)} className="w-full">
               Share Anonymously
             </Button>

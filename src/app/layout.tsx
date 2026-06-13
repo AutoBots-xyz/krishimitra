@@ -1,20 +1,34 @@
 import type { Metadata } from "next";
-import { 
-  Plus_Jakarta_Sans, 
+import {
+  Fraunces,
+  Plus_Jakarta_Sans,
   JetBrains_Mono,
-  Noto_Sans_Devanagari
+  Noto_Sans_Devanagari,
 } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/shared/QueryProvider";
 import { LanguageProvider } from "@/components/shared/LanguageProvider";
 
-const plusJakartaSans = Plus_Jakarta_Sans({ 
+// Luxury editorial serif — optical-size variable, ink-trap detail
+// Closest web equivalent to Apple's "New York" typeface
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-plus-jakarta-sans",
+  weight: ["300", "400", "500", "600", "700", "800"],
+  style: ["normal", "italic"],
+  variable: "--font-fraunces",
   display: "swap",
-  preload: true,
 });
 
+// Premium sans — slightly wider than Inter, better optically at small sizes
+// Used by Pitch, Raycast — distinct personality without being decorative
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
+
+// JetBrains Mono — for all numeric data, labels, mono contexts
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
@@ -22,32 +36,31 @@ const jetbrainsMono = JetBrains_Mono({
   preload: false,
 });
 
-// Single Devanagari font covering all Hindi text needs (replaces both Tiro + Noto)
+// Devanagari — Hindi support
 const notoSansDevanagari = Noto_Sans_Devanagari({
   weight: ["400", "600"],
   subsets: ["devanagari"],
   variable: "--font-noto-sans-devanagari",
   display: "swap",
-  preload: false, // Only loaded when Hindi text is rendered
+  preload: false,
 });
 
 export const metadata: Metadata = {
-  title: "KrishiMitra - Agricultural Decision Infrastructure",
-  description: "AI-powered decision-support platform for Indian farmers.",
+  title: "KrishiMitra — Smart Farming for India",
+  description: "AI-powered agricultural decision platform for Indian farmers.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} ${notoSansDevanagari.variable}`}>
-      <body className="antialiased text-foreground bg-background">
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} ${notoSansDevanagari.variable}`}
+    >
+      <body className="antialiased">
         <QueryProvider>
-          <LanguageProvider>
-            {children}
-          </LanguageProvider>
+          <LanguageProvider>{children}</LanguageProvider>
         </QueryProvider>
       </body>
     </html>

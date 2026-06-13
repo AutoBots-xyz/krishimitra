@@ -4,74 +4,62 @@ import { Leaf, Camera, Map as MapIcon, MessageSquare, Sprout, CloudRain, ShieldC
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-mist bg-topo-pattern p-4 md:p-8 flex flex-col items-center justify-center">
-      <div className="max-w-3xl w-full bg-white/95 backdrop-blur-sm p-6 md:p-10 rounded-3xl shadow-high border border-neutral-100">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+      <div className="glass max-w-2xl w-full p-10 md:p-14 rounded-2xl shadow-xl flex flex-col items-center">
         
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-leaf text-white rounded-xl flex items-center justify-center shadow-mid">
-            <Leaf className="w-7 h-7" />
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+          <Leaf className="w-8 h-8 text-primary" />
+        </div>
+        
+        <h1 className="font-display text-5xl font-bold text-primary text-center mb-10">
+          Grow with <span className="italic">intention.</span>
+        </h1>
+
+        <div className="w-full">
+          <p className="eyebrow text-center mb-8">FOR INDIAN FARMERS</p>
+          
+          <div className="space-y-4 mb-10">
+            <FeatureRow 
+              icon={<Camera className="w-5 h-5 text-primary" />}
+              title="Instant Crop Analysis"
+              desc="Snap a photo of a sick crop. Get an instant AI diagnosis and affordable treatment plan."
+            />
+            <FeatureRow 
+              icon={<MapIcon className="w-5 h-5 text-primary" />}
+              title="Local Disease Tracking"
+              desc="See outbreaks in your area before they reach your field."
+            />
+            <FeatureRow 
+              icon={<MessageSquare className="w-5 h-5 text-primary" />}
+              title="24/7 Expert Chat"
+              desc="Ask our AI agronomist anything in Hindi or English."
+            />
+            <FeatureRow 
+              icon={<Sprout className="w-5 h-5 text-primary" />}
+              title="Smart Farm Planning"
+              desc="Get personalized crop suggestions based on your land and soil."
+            />
+            <FeatureRow 
+              icon={<CloudRain className="w-5 h-5 text-primary" />}
+              title="Hyperlocal Weather"
+              desc="Know exactly when to water, spray, or harvest."
+            />
           </div>
-          <h1 className="font-display text-heading-1 text-soil text-center">
-            Welcome to Krishi Mitra
-          </h1>
-        </div>
 
-        <p className="text-xl text-center text-neutral-800 font-medium mb-8">
-          — Your Farm's New Best Friend! 🌾
-        </p>
+          <div className="glass border border-success/20 p-5 rounded-xl flex gap-4 items-start mb-10">
+            <ShieldCheck className="w-6 h-6 text-success shrink-0 mt-0.5" />
+            <p className="text-sm text-muted italic font-body font-light">
+              Your information stays private. When you help warn other farmers about a disease, you do it anonymously.
+            </p>
+          </div>
 
-        <p className="text-lg text-neutral-800 mb-6">Namaste! 🙏</p>
-
-        <p className="text-lg text-neutral-800 mb-8 leading-relaxed">
-          Imagine having a senior agronomist, a weather expert, and a community of fellow farmers — all available in your pocket, anytime you need them, completely free.
-          <br /><br />
-          <strong>That's Krishi Mitra.</strong>
-        </p>
-
-        <div className="space-y-6 mb-10">
-          <FeatureRow 
-            icon={<Camera className="w-6 h-6 text-indigo" />}
-            title="Worried about a sick crop?"
-            desc="Just snap a photo. Within seconds, get a clear report telling you exactly what's wrong, how serious it is, and what to do about it — using treatments that are affordable and easy to find."
-          />
-          <FeatureRow 
-            icon={<MapIcon className="w-6 h-6 text-alert-amber" />}
-            title="Want to know what's happening around you?"
-            desc="Our CropWatch map shows disease outbreaks in your area before they reach your field — so you can act early and protect your harvest."
-          />
-          <FeatureRow 
-            icon={<MessageSquare className="w-6 h-6 text-sky" />}
-            title="Have a question, day or night?"
-            desc="Chat with our AI agronomist in Hindi or English — about pests, fertilizers, irrigation, government schemes, or today's mandi prices. No judgment, no waiting."
-          />
-          <FeatureRow 
-            icon={<Sprout className="w-6 h-6 text-leaf" />}
-            title="Planning your next season?"
-            desc="Tell us about your land, soil, and water — we'll suggest the best crops to grow, when to sow and harvest, and even estimate what you could earn."
-          />
-          <FeatureRow 
-            icon={<CloudRain className="w-6 h-6 text-indigo" />}
-            title="Curious about the weather's impact?"
-            desc="Get personalized advice based on your exact location's forecast — so you know when to water, spray, or harvest."
-          />
-        </div>
-
-        <div className="bg-sky/30 border border-sky p-4 rounded-xl flex gap-3 items-start mb-10">
-          <ShieldCheck className="w-6 h-6 text-indigo shrink-0 mt-0.5" />
-          <p className="text-sm text-neutral-800 italic">
-            Your information stays private. When you help warn other farmers about a disease, you do it anonymously — your name is never shared.
-          </p>
-        </div>
-
-        <div className="text-center">
-          <p className="font-display text-heading-2 text-soil mb-8">
-            Let's grow smarter, together. 🌾💚
-          </p>
-          <Link href="/login">
-            <Button size="lg" className="w-full md:w-auto md:px-12 text-lg">
-              Get Started
-            </Button>
-          </Link>
+          <div className="flex justify-center">
+            <Link href="/login" className="w-full md:w-auto">
+              <Button size="lg" className="w-full md:w-auto md:px-12">
+                Get Started
+              </Button>
+            </Link>
+          </div>
         </div>
 
       </div>
@@ -81,13 +69,13 @@ export default function Home() {
 
 function FeatureRow({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
   return (
-    <div className="flex gap-4 items-start">
-      <div className="shrink-0 mt-1 bg-neutral-100 p-2 rounded-lg">
+    <div className="glass flex gap-4 items-start p-4 rounded-xl hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+      <div className="shrink-0 bg-primary/10 p-3 rounded-full flex items-center justify-center">
         {icon}
       </div>
-      <div>
-        <h3 className="font-semibold text-soil text-lg">{title}</h3>
-        <p className="text-neutral-800 leading-relaxed mt-1">{desc}</p>
+      <div className="mt-1">
+        <h3 className="font-body font-medium text-primary text-base">{title}</h3>
+        <p className="font-body font-light text-muted text-sm mt-1">{desc}</p>
       </div>
     </div>
   );

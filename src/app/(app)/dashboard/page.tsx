@@ -1,225 +1,265 @@
 "use client";
 
-import { Scan, Map as MapIcon, MessageSquare, ListTodo, CloudRain, Wind, AlertTriangle, ChevronRight, Loader2 } from "lucide-react";
+import {
+  Scan, Map as MapIcon, MessageSquare, ListTodo,
+  CloudRain, Wind, AlertTriangle, ChevronRight,
+  Thermometer, Droplets, ArrowUpRight, Zap, ShieldAlert
+} from "lucide-react";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/languageStore";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
-// Dashboard is now a Client Component to support live translation
-// Data shown here will be replaced by real Supabase queries once authentication + farmer profile are wired up.
-// The placeholders below use safe fallback values.
+const FARMER_NAME = "Ramesh";
 
-const FARMER_NAME = "Farmer";        // TODO: fetch from farmers table
-// Location is now managed in state
+const fade = (delay = 0) => ({
+  initial: { opacity: 0, y: 18 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+});
 
 export default function DashboardPage() {
   const { language } = useLanguageStore();
-  const [location, setLocation] = useState("Bhopal, Madhya Pradesh");
-  const [isEditingLocation, setIsEditingLocation] = useState(false);
-  const [tempLocation, setTempLocation] = useState("");
-  
-  const [weatherText, setWeatherText] = useState("32° | Rain 20%");
-  const [windText, setWindText] = useState("12 km/h");
-  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+  const [temp, setTemp] = useState<number | null>(null);
+  const [rain, setRain] = useState<number | null>(null);
+  const [wind, setWind] = useState<number | null>(null);
+  const [humidity, setHumidity] = useState<number | null>(null);
+  const location = "Bhopal, MP";
 
   useEffect(() => {
-    async function updateWeather() {
-      if (!location) return;
-      setIsWeatherLoading(true);
+    async function fetchWeather() {
       try {
-        // Geocode
-        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`);
-        const geoData = await geoRes.json();
-        if (!geoData.results || geoData.results.length === 0) {
-          setIsWeatherLoading(false);
-          return;
+        const geo = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=Bhopal&count=1&format=json`
+        ).then((r) => r.json());
+        if (!geo.results?.length) return;
+        const { latitude: lat, longitude: lng } = geo.results[0];
+        const w = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&hourly=precipitation_probability`
+        ).then((r) => r.json());
+        if (w.current) {
+          setTemp(Math.round(w.current.temperature_2m));
+          setRain(w.hourly?.precipitation_probability?.[new Date().getHours()] ?? 0);
+          setWind(Math.round(w.current.wind_speed_10m));
+          setHumidity(w.current.relative_humidity_2m ?? null);
         }
-        
-        const { latitude, longitude } = geoData.results[0];
-        
-        // Fetch Weather
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,wind_speed_10m,precipitation&hourly=precipitation_probability`);
-        const weatherData = await weatherRes.json();
-        
-        if (weatherData.current) {
-          const temp = Math.round(weatherData.current.temperature_2m);
-          // Get precip prob for the current hour
-          const currentHour = new Date().getHours();
-          const precipProb = weatherData.hourly?.precipitation_probability?.[currentHour] || 0;
-          const wind = Math.round(weatherData.current.wind_speed_10m);
-          
-          setWeatherText(`${temp}° | ${language === 'en' ? 'Rain' : 'बारिश'} ${precipProb}%`);
-          setWindText(`${wind} km/h`);
-        }
-      } catch (err) {
-        console.error("Failed to update weather:", err);
-      } finally {
-        setIsWeatherLoading(false);
-      }
+      } catch (_) {}
     }
-    
-    updateWeather();
-  }, [location, language]);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
+    fetchWeather();
+  }, []);
 
   return (
-    <motion.div 
-      className="space-y-6 max-w-5xl mx-auto pb-20 md:pb-0"
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-    >
-      
-      {/* Hero Card */}
-      <motion.div variants={itemVariants} className="rounded-xl p-6 shadow-mid border border-neutral-100 relative overflow-hidden bg-cover bg-center" style={{ backgroundImage: "url('/hero-bg.png')" }}>
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-0"></div>
-        <div className="relative z-10">
-          <h1 className="font-display text-display-lg text-soil mb-1">
-            {language === 'en' ? `Hello ${FARMER_NAME}` : `नमस्ते ${FARMER_NAME} जी`}
-          </h1>
-          <div className="text-neutral-800 flex items-center gap-2 mb-4 h-8">
-            <span>📍</span>
-            {isEditingLocation ? (
-              <input 
-                autoFocus
-                className="bg-white/90 border border-indigo/30 rounded-md px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo w-56 text-neutral-800 shadow-sm"
-                value={tempLocation}
-                onChange={(e) => setTempLocation(e.target.value)}
-                onBlur={() => {
-                  if (tempLocation.trim()) setLocation(tempLocation);
-                  setIsEditingLocation(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    if (tempLocation.trim()) setLocation(tempLocation);
-                    setIsEditingLocation(false);
-                  } else if (e.key === 'Escape') {
-                    setIsEditingLocation(false);
-                  }
-                }}
-              />
+    <div className="pb-10 space-y-5">
+
+      {/* ─── HERO ─── */}
+      <motion.div {...fade(0)} className="relative overflow-hidden rounded-3xl" style={{
+        background: "linear-gradient(135deg, #1A4731 0%, #0f2a1d 60%, #1a3a20 100%)",
+        boxShadow: "0 20px 60px rgba(26,71,49,0.35)",
+      }}>
+        {/* Decorative orbs */}
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #C8800F 0%, transparent 70%)" }} />
+        <div className="absolute bottom-0 left-1/3 w-80 h-32 opacity-10"
+          style={{ background: "radial-gradient(ellipse, #78BE6E 0%, transparent 70%)" }} />
+
+        <div className="relative z-10 p-6 md:p-10">
+          {/* Eyebrow */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-white/50">
+              {location} · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="font-display font-bold text-white leading-[1.05] mb-6"
+            style={{ fontSize: "clamp(2.2rem, 6vw, 4rem)" }}>
+            {language === "en" ? (
+              <>Good morning,<br /><span className="italic text-white/75">{FARMER_NAME}.</span></>
             ) : (
-              <span 
-                className="cursor-pointer hover:bg-white/50 px-2 py-1 -ml-2 rounded-md transition-colors border border-transparent hover:border-neutral-200"
-                onClick={() => {
-                  setTempLocation(location);
-                  setIsEditingLocation(true);
-                }}
-                title={language === 'en' ? "Click to change location" : "स्थान बदलने के लिए क्लिक करें"}
-              >
-                {location}
-              </span>
+              <>शुभ प्रभात,<br /><span className="italic text-white/75">{FARMER_NAME}।</span></>
             )}
-          </div>
-          
-          <div className="flex gap-4 items-center mt-2 bg-white/80 p-3 rounded-lg w-max backdrop-blur-sm shadow-low">
-            <div className="flex items-center gap-1 text-soil font-medium">
-              {isWeatherLoading ? <Loader2 className="w-5 h-5 text-indigo animate-spin" /> : <CloudRain className="w-5 h-5 text-indigo" />} 
-              {isWeatherLoading ? "..." : weatherText}
-            </div>
-            <div className="w-px h-4 bg-neutral-400"></div>
-            <div className="flex items-center gap-1 text-neutral-800 text-sm">
-              <Wind className="w-4 h-4" /> 
-              {isWeatherLoading ? "..." : windText}
-            </div>
+          </h1>
+
+          {/* Weather Stats row */}
+          <div className="grid grid-cols-4 gap-3 md:gap-4">
+            <WeatherStat icon={<Thermometer className="w-4 h-4" />}
+              label={language === "en" ? "Temp" : "तापमान"}
+              value={temp !== null ? `${temp}°` : "—"} />
+            <WeatherStat icon={<CloudRain className="w-4 h-4" />}
+              label={language === "en" ? "Rain" : "बारिश"}
+              value={rain !== null ? `${rain}%` : "—"} />
+            <WeatherStat icon={<Wind className="w-4 h-4" />}
+              label={language === "en" ? "Wind" : "हवा"}
+              value={wind !== null ? `${wind} km/h` : "—"} />
+            <WeatherStat icon={<Droplets className="w-4 h-4" />}
+              label={language === "en" ? "Humid" : "नमी"}
+              value={humidity !== null ? `${humidity}%` : "—"} />
           </div>
         </div>
       </motion.div>
 
-      {/* Quick Actions Grid */}
-      <motion.div variants={itemVariants} className="grid grid-cols-4 gap-3 md:gap-6">
-        <QuickAction href="/scan" icon={Scan} label={language === 'en' ? "Scan Crop" : "फसल स्कैन"} color="bg-leaf" text="text-white" />
-        <QuickAction href="/cropwatch" icon={MapIcon} label={language === 'en' ? "Watch Map" : "नक्शा देखें"} color="bg-alert-amber" text="text-white" />
-        <QuickAction href="/chat" icon={MessageSquare} label={language === 'en' ? "Ask Expert" : "विशेषज्ञ से पूछें"} color="bg-sky" text="text-indigo" />
-        <QuickAction href="/plan" icon={ListTodo} label={language === 'en' ? "Plan Farm" : "फार्म योजना"} color="bg-harvest" text="text-soil" />
+      {/* ─── QUICK ACTIONS ─── */}
+      <motion.div {...fade(0.08)} className="grid grid-cols-4 gap-3">
+        <QuickAction href="/scan" icon={Scan} label={language === "en" ? "Scan" : "स्कैन"} color="#1A4731" />
+        <QuickAction href="/cropwatch" icon={MapIcon} label={language === "en" ? "Map" : "नक्शा"} color="#C8800F" />
+        <QuickAction href="/chat" icon={MessageSquare} label={language === "en" ? "Ask AI" : "पूछें"} color="#1A6B45" />
+        <QuickAction href="/plan" icon={ListTodo} label={language === "en" ? "Plan" : "योजना"} color="#B67D14" />
       </motion.div>
 
-      {/* Active Alerts */}
-      <motion.section variants={itemVariants}>
-        <h2 className="font-display text-heading-2 text-soil mb-3">⚠ {language === 'en' ? 'Active Alerts' : 'सक्रिय अलर्ट'}</h2>
-        <div className="flex overflow-x-auto gap-3 pb-2 snap-x">
-          <div className="snap-start shrink-0 w-72 bg-alert-red/10 border border-alert-red/20 p-4 rounded-xl flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-alert-red shrink-0" />
-            <div>
-              <h3 className="font-semibold text-alert-red text-sm">{language === 'en' ? 'Wheat Rust Outbreak' : 'गेहूं रस्ट प्रकोप'}</h3>
-              <p className="text-xs text-neutral-800 mt-1">{language === 'en' ? '14 cases detected within 5km in the last 2 days.' : 'पिछले 2 दिनों में 5 किमी के भीतर 14 मामले सामने आए।'}</p>
-            </div>
-          </div>
-          <div className="snap-start shrink-0 w-72 bg-alert-amber/10 border border-alert-amber/20 p-4 rounded-xl flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-alert-amber shrink-0" />
-            <div>
-              <h3 className="font-semibold text-alert-amber text-sm">{language === 'en' ? 'Heavy Rain Expected' : 'भारी बारिश की संभावना'}</h3>
-              <p className="text-xs text-neutral-800 mt-1">Avoid spraying fertilizers for the next 48 hours.</p>
-            </div>
-          </div>
-        </div>
-      </motion.section>
+      {/* ─── BENTO GRID ─── */}
+      <motion.div {...fade(0.14)} className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-      {/* Recent Scans */}
-      <motion.section variants={itemVariants}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-heading-2 text-soil">{language === 'en' ? 'Recent Scans' : 'हाल के स्कैन'}</h2>
-          <Link href="/scan/history" className="text-sm text-indigo font-medium flex items-center hover:underline">
-            {language === 'en' ? 'View all' : 'सभी देखें'} <ChevronRight className="w-4 h-4 ml-1" />
+        {/* Advisory — spans 2 cols on md */}
+        <div className="col-span-2 md:col-span-2 relative overflow-hidden rounded-2xl p-5 md:p-6"
+          style={{ background: "linear-gradient(135deg, #fdf6ec 0%, #fef3e2 100%)", border: "1px solid rgba(200,128,15,0.18)" }}>
+          <div className="absolute top-0 right-0 w-32 h-32 opacity-10"
+            style={{ background: "radial-gradient(circle at top right, #C8800F 0%, transparent 70%)" }} />
+          <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-[#B67D14] mb-3 block">
+            {language === "en" ? "Today's Advisory" : "आज की सलाह"}
+          </span>
+          <p className="font-display text-[#0D1910] leading-snug mb-4"
+            style={{ fontSize: "clamp(1.1rem, 3vw, 1.5rem)", fontStyle: "italic" }}>
+            {language === "en"
+              ? '"Delay irrigation 48 hrs — 40mm rain forecast from Thursday.'
+              : '"गुरुवार से 40 मिमी बारिश — 48 घंटे सिंचाई न करें।'}
+          </p>
+          <Link href="/advisory"
+            className="inline-flex items-center gap-1 text-sm font-medium text-[#B67D14] hover:gap-2 transition-all">
+            {language === "en" ? "Full advisory" : "पूरी सलाह"} <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="bg-white p-3 rounded-xl shadow-low border border-neutral-100 flex items-center gap-4">
-            <img src="/rice-blast.png" alt="Rice Blast" className="w-16 h-16 object-cover rounded-lg shrink-0 border border-neutral-200" />
-            <div className="flex-1">
-              <h3 className="font-medium text-soil">Rice Blast</h3>
-              <p className="text-xs text-neutral-400 mt-1">2 days ago</p>
-            </div>
-            <div className="w-3 h-3 rounded-full bg-alert-red shrink-0"></div>
-          </div>
-          <div className="bg-white p-3 rounded-xl shadow-low border border-neutral-100 flex items-center gap-4">
-            <img src="/healthy-crop.png" alt="Healthy Crop" className="w-16 h-16 object-cover rounded-lg shrink-0 border border-neutral-200" />
-            <div className="flex-1">
-              <h3 className="font-medium text-soil">Healthy Crop</h3>
-              <p className="text-xs text-neutral-400 mt-1">1 week ago</p>
-            </div>
-            <div className="w-3 h-3 rounded-full bg-leaf shrink-0"></div>
-          </div>
-        </div>
-      </motion.section>
 
-      {/* Today's Advisory */}
-      <motion.section variants={itemVariants} className="bg-sky border-l-4 border-harvest rounded-r-xl p-5 shadow-low">
-        <h3 className="font-display text-heading-3 text-soil mb-2">{language === 'en' ? "Today's Advisory" : "आज की सलाह"}</h3>
-        <p className="text-neutral-800 italic leading-relaxed">
-          {language === 'en' ? `"Delay irrigation for the next 2 days — 40mm rain is forecast starting Thursday evening."` : `"अगले 2 दिनों के लिए सिंचाई में देरी करें — गुरुवार शाम से 40 मिमी बारिश का अनुमान है।"`}
-        </p>
-        <div className="mt-3 text-right">
-          <Link href="/advisory" className="text-sm font-semibold text-indigo">{language === 'en' ? 'Read full advisory →' : 'पूरी सलाह पढ़ें →'}</Link>
+        {/* Field Health Score */}
+        <div className="relative overflow-hidden rounded-2xl p-5"
+          style={{ background: "linear-gradient(160deg, #e8f5ee 0%, #d4eddd 100%)", border: "1px solid rgba(26,107,69,0.15)" }}>
+          <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-[#1A6B45] mb-2 block">
+            {language === "en" ? "Field Health" : "फसल स्वास्थ्य"}
+          </span>
+          <div className="font-display font-bold text-[#1A4731] mb-1" style={{ fontSize: "3rem", lineHeight: 1 }}>
+            86
+            <span className="text-lg text-[#1A6B45]/60 font-normal ml-1">/100</span>
+          </div>
+          <p className="text-xs text-[#1A6B45] font-medium mt-2">
+            {language === "en" ? "↑ 4 pts from last week" : "↑ पिछले सप्ताह से 4 अंक"}
+          </p>
+          <div className="mt-3 h-1.5 rounded-full bg-[#1A6B45]/15">
+            <div className="h-full rounded-full bg-[#1A6B45]" style={{ width: "86%" }} />
+          </div>
         </div>
-      </motion.section>
-      
-    </motion.div>
+
+        {/* Alert: Disease Risk */}
+        <div className="relative overflow-hidden rounded-2xl p-5"
+          style={{ background: "linear-gradient(160deg, #fff1f0 0%, #ffe4e1 100%)", border: "1px solid rgba(197,48,48,0.15)" }}>
+          <div className="flex items-start justify-between mb-3">
+            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-[#C53030] block">
+              {language === "en" ? "Disease Alert" : "रोग चेतावनी"}
+            </span>
+            <ShieldAlert className="w-5 h-5 text-[#C53030]" />
+          </div>
+          <p className="font-display font-semibold text-[#0D1910] text-lg leading-snug mb-1">
+            {language === "en" ? "Wheat Rust" : "गेहूं रस्ट"}
+          </p>
+          <p className="text-xs text-[#C53030] font-medium">
+            {language === "en" ? "14 cases · 5km radius" : "14 मामले · 5km दायरे में"}
+          </p>
+          <Link href="/cropwatch"
+            className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[#C53030]">
+            {language === "en" ? "View on map" : "नक्शे पर देखें"} <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Weather Alert */}
+        <div className="relative overflow-hidden rounded-2xl p-5"
+          style={{ background: "linear-gradient(160deg, #fffbeb 0%, #fef3c7 100%)", border: "1px solid rgba(182,125,20,0.15)" }}>
+          <div className="flex items-start justify-between mb-3">
+            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-[#B67D14] block">
+              {language === "en" ? "Weather" : "मौसम"}
+            </span>
+            <AlertTriangle className="w-5 h-5 text-[#B67D14]" />
+          </div>
+          <p className="font-display font-semibold text-[#0D1910] text-lg leading-snug mb-1">
+            {language === "en" ? "Heavy Rain" : "भारी बारिश"}
+          </p>
+          <p className="text-xs text-[#B67D14] font-medium">
+            {language === "en" ? "Thu–Fri · Avoid spraying" : "गुरु–शुक्र · स्प्रे न करें"}
+          </p>
+        </div>
+
+        {/* MSP Ticker */}
+        <div className="col-span-2 md:col-span-1 relative overflow-hidden rounded-2xl p-5"
+          style={{ background: "linear-gradient(160deg, #f0f4ff 0%, #e8eeff 100%)", border: "1px solid rgba(26,71,49,0.12)" }}>
+          <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-[#1A4731] mb-2 block">
+            {language === "en" ? "MSP Rates" : "MSP दर"}
+          </span>
+          <div className="space-y-2">
+            {[
+              { crop: language === "en" ? "Wheat" : "गेहूं", price: "₹2,275", unit: "/qtl", up: true },
+              { crop: language === "en" ? "Rice" : "धान", price: "₹2,183", unit: "/qtl", up: false },
+              { crop: language === "en" ? "Soybean" : "सोयाबीन", price: "₹4,600", unit: "/qtl", up: true },
+            ].map((item) => (
+              <div key={item.crop} className="flex items-center justify-between">
+                <span className="text-xs text-muted font-medium">{item.crop}</span>
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-sm font-semibold text-[#0D1910]">{item.price}</span>
+                  <span className="font-mono text-[10px] text-muted">{item.unit}</span>
+                  <Zap className={`w-3 h-3 ${item.up ? "text-[#1A6B45]" : "text-[#C53030]"}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ─── SCAN CTA STRIP ─── */}
+      <motion.div {...fade(0.2)}>
+        <Link href="/scan"
+          className="flex items-center justify-between rounded-2xl px-6 py-5 group transition-all duration-300 hover:scale-[1.01]"
+          style={{
+            background: "linear-gradient(90deg, #1A4731 0%, #163d29 100%)",
+            boxShadow: "0 8px 32px rgba(26,71,49,0.25)",
+          }}>
+          <div>
+            <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-white/50 mb-1">
+              {language === "en" ? "AI Diagnosis" : "AI निदान"}
+            </p>
+            <p className="font-display font-semibold text-white text-xl">
+              {language === "en" ? "Scan a crop now" : "अभी फसल स्कैन करें"}
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+            <Scan className="w-5 h-5 text-white" />
+          </div>
+        </Link>
+      </motion.div>
+
+    </div>
   );
 }
 
-function QuickAction({ href, icon: Icon, label, color, text }: { href: string, icon: any, label: string, color: string, text: string }) {
+function WeatherStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <Link href={href} className="flex flex-col items-center gap-2">
-      <div className={`w-14 h-14 md:w-16 md:h-16 ${color} ${text} rounded-2xl flex items-center justify-center shadow-mid hover:scale-105 transition-transform`}>
-        <Icon className="w-7 h-7 md:w-8 md:h-8" />
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-1 text-white/50">
+        {icon}
+        <span className="font-mono text-[9px] uppercase tracking-widest">{label}</span>
       </div>
-      <span className="text-xs md:text-sm font-medium text-neutral-800 text-center leading-tight">
-        {label}
-      </span>
+      <span className="font-mono font-semibold text-white text-base">{value}</span>
+    </div>
+  );
+}
+
+function QuickAction({ href, icon: Icon, label, color }: {
+  href: string; icon: any; label: string; color: string;
+}) {
+  return (
+    <Link href={href}
+      className="flex flex-col items-center justify-center gap-2.5 rounded-2xl py-4 px-2 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 glass border border-primary/5">
+      <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+        style={{ background: `${color}18` }}>
+        <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
+      </div>
+      <span className="font-body font-medium text-[11px] text-center leading-tight text-muted">{label}</span>
     </Link>
   );
 }

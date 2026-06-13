@@ -1,52 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,300;1,9..144,400;1,9..144,600;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --color-harvest: #E8A020;
-    --color-soil: #5C3D2E;
-    --color-mist: #F5F0E8;
-    --color-sky: #EAF3FB;
-    --color-indigo: #2D4B8E;
-    --color-alert-red: #D94040;
-    --color-alert-amber: #E07B39;
-    --color-alert-lime: #7BAD3E;
-    --color-leaf: #4A8C3F;
-    --color-neutral-800: #2B2B2B;
-    --color-neutral-400: #9B9B9B;
-    --color-neutral-100: #FAFAF8;
+    /* Brand Colours */
+    --color-primary:    #1A4731;            /* Deep Forest Green */
+    --color-secondary:  #C8800F;            /* Harvest Amber */
+    --color-background: #F3F6F0;            /* Morning Mist */
+    --color-surface:    rgba(255, 255, 255, 0.68); /* Frosted Glass */
+    --color-border:     rgba(26, 71, 49, 0.10);   /* Glass Edge */
+    --color-text:       #0D1910;            /* Forest Black */
+    --color-text-muted: #6B7E72;            /* Sage Grey */
+    --color-error:      #C53030;            /* Brick Red */
+    --color-success:    #1A6B45;            /* Deep Forest Green */
+    --color-warning:    #B67D14;            /* Deep Amber */
 
-    --shadow-low: 0 1px 3px rgba(44,28,18,0.08), 0 1px 2px rgba(44,28,18,0.06);
-    --shadow-mid: 0 4px 12px rgba(44,28,18,0.10), 0 2px 4px rgba(44,28,18,0.06);
-    --shadow-high: 0 12px 32px rgba(44,28,18,0.14), 0 4px 8px rgba(44,28,18,0.08);
-    --shadow-map: 0 2px 8px rgba(44,28,18,0.20);
-    
-    --radius-sm: 6px;
-    --radius-md: 12px;
-    --radius-lg: 20px;
-    --radius-xl: 32px;
-    --radius-pill: 9999px;
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
+    --shadow-xl: 0 24px 60px rgba(0,0,0,0.10);
 
-    --background: var(--color-mist);
-    --foreground: var(--color-neutral-800);
+    /* Radius */
+    --radius-sm:   4px;
+    --radius-md:   8px;
+    --radius-lg:  12px;
+    --radius-xl:  16px;
+    --radius-2xl: 20px;
+    --radius-full: 9999px;
   }
-}
 
-@layer base {
   body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-plus-jakarta-sans), sans-serif;
+    background:
+      radial-gradient(ellipse 60% 50% at 10% 10%, rgba(120,190,110,0.28) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 25%, rgba(200,128,15,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 45% 45% at 45% 85%, rgba(26,71,49,0.14) 0%, transparent 60%),
+      var(--color-background);
+    background-attachment: fixed;
+    color: var(--color-text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-.lang-hi {
-  font-size: 1.05em;
-  line-height: 1.75;
-}
+@layer components {
+  /* Glass surface — ALWAYS use this, never surface colour alone */
+  .glass {
+    background: var(--color-surface);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+  }
 
-/* Topographic background utility */
-.bg-topo-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c13.866 0 25.362 11.496 25.362 25.362 0 13.866 11.496 25.362 25.362 25.362 13.866 0 25.362 11.496 25.362 25.362' fill='none' stroke='%232B2B2B' stroke-width='1' stroke-opacity='0.06' stroke-dasharray='5 5'/%3E%3C/svg%3E");
+  /* Section eyebrow label */
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  /* Data value — numbers, %, kg, ha */
+  .data-value {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Hindi text */
+  .lang-hi {
+    font-family: var(--font-noto-sans-devanagari), sans-serif;
+    font-size: 1.05em;
+    line-height: 1.75;
+  }
 }
