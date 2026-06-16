@@ -187,7 +187,7 @@ export default function ScanPage() {
         hi: { 
           name: "मेरा स्कैन किया गया खेत", 
           state: "मध्य प्रदेश", 
-          disease: report.disease_name || "बीमारी", 
+          disease: report.disease_name_hi || report.disease_name || "बीमारी", 
           cropType: "अज्ञात" 
         }
       };

@@ -127,7 +127,8 @@ export default function ReportsPage() {
       id: "REP-0192",
       type: "Disease Scan",
       date: "Sep 12, 2026",
-      title: language === 'en' ? "Wheat Rust Analysis" : "गेहूं रस्ट विश्लेषण",
+      title_en: "Wheat Rust Analysis",
+      title_hi: "गेहूं रस्ट विश्लेषण",
       severity: "High",
       icon: ShieldAlert,
       themeColor: "#C53030",
@@ -136,7 +137,8 @@ export default function ReportsPage() {
       id: "REP-0191",
       type: "Farm Plan",
       date: "Aug 05, 2026",
-      title: language === 'en' ? "Soybean Yield Strategy" : "सोयाबीन उपज रणनीति",
+      title_en: "Soybean Yield Strategy",
+      title_hi: "सोयाबीन उपज रणनीति",
       severity: "Optimal",
       icon: Sprout,
       themeColor: "#1A6B45",
@@ -145,7 +147,8 @@ export default function ReportsPage() {
       id: "REP-0190",
       type: "Soil Test",
       date: "Jul 22, 2026",
-      title: language === 'en' ? "Nitrogen Deficiency" : "नाइट्रोजन की कमी",
+      title_en: "Nitrogen Deficiency",
+      title_hi: "नाइट्रोजन की कमी",
       severity: "Warning",
       icon: AlertTriangle,
       themeColor: "#B67D14",
@@ -154,7 +157,8 @@ export default function ReportsPage() {
       id: "REP-0189",
       type: "Disease Scan",
       date: "Jul 10, 2026",
-      title: language === 'en' ? "Healthy Rice Crop" : "स्वस्थ चावल की फसल",
+      title_en: "Healthy Rice Crop",
+      title_hi: "स्वस्थ चावल की फसल",
       severity: "Optimal",
       icon: CheckCircle2,
       themeColor: "#1A6B45",
@@ -184,7 +188,8 @@ export default function ReportsPage() {
             id: dbReq.id,
             type: "Disease Scan",
             date: new Date(dbReq.created_at).toLocaleDateString(),
-            title: dbReq.disease_name,
+            title_en: dbReq.disease_name,
+            title_hi: dbReq.raw_ai_response?.disease_name_hi,
             severity: dbReq.severity_level.charAt(0).toUpperCase() + dbReq.severity_level.slice(1),
             icon: ShieldAlert,
             themeColor: dbReq.severity_level === 'high' || dbReq.severity_level === 'critical' ? "#C53030" : "#B67D14",
@@ -219,7 +224,7 @@ export default function ReportsPage() {
     if (!selectedReport) return;
     setIsDownloadingHistory(true);
     try {
-      await downloadAsPDF("historical-report-content", `KisanAI_${selectedReport.title.replace(/\s+/g, '_')}`);
+      await downloadAsPDF("historical-report-content", `KisanAI_${(selectedReport.title_en || selectedReport.title || 'report').replace(/\s+/g, '_')}`);
     } catch (error) {
       console.error(error);
     } finally {
@@ -381,7 +386,7 @@ export default function ReportsPage() {
 
                 <div className="flex items-end justify-between">
                   <h3 className="font-display text-xl font-medium text-text group-hover:text-primary transition-colors">
-                    {report.title}
+                    {language === 'hi' && report.title_hi ? report.title_hi : (report.title_en || report.title)}
                   </h3>
                   <ChevronRight className="w-5 h-5 text-muted opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                 </div>
@@ -425,7 +430,9 @@ export default function ReportsPage() {
                   <selectedReport.icon className="w-7 h-7" style={{ color: selectedReport.themeColor }} />
                 </div>
                 <div>
-                  <h3 className="font-display font-semibold text-2xl text-text leading-tight">{selectedReport.title}</h3>
+                  <h3 className="font-display font-semibold text-2xl text-text leading-tight">
+                    {language === 'hi' && selectedReport.title_hi ? selectedReport.title_hi : (selectedReport.title_en || selectedReport.title)}
+                  </h3>
                   <p className="text-muted text-sm">{selectedReport.date} • {translateType(selectedReport.type)}</p>
                 </div>
               </div>

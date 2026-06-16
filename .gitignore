@@ -84,5 +84,12 @@ $RECYCLE.BIN/
 # Misc
 # ========================
 *.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+client_secret*.json
+credentials*.json
 .vercel
 .turbo

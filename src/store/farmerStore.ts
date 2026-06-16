@@ -34,11 +34,27 @@ const initialRiskPoints: RiskPoint[] = [
     hi: { name: "भोपाल पूर्वी एस्टेट", state: "मध्य प्रदेश", disease: "कोई नहीं", cropType: "चावल" } },
 ];
 
+export interface FarmerProfile {
+  id?: string;
+  name: string;
+  phone: string;
+  location: string;
+  farmSize: string;
+  soilType: string;
+  primaryCrops: string;
+  irrigation: string;
+  budgetLevel: string;
+  laborAvailability: string;
+  farmingApproach: string;
+  targetMarket: string;
+  riskAppetite: string;
+}
+
 interface FarmerState {
-  profile: any | null;
+  profile: FarmerProfile | null;
   location: { lat: number; lng: number } | null;
   riskPoints: RiskPoint[];
-  setProfile: (profile: any) => void;
+  setProfile: (profile: FarmerProfile) => void;
   setLocation: (location: { lat: number; lng: number }) => void;
   addRiskPoint: (point: RiskPoint) => void;
 }

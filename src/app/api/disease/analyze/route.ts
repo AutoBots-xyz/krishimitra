@@ -17,25 +17,29 @@ export async function POST(req: Request) {
     const base64Image = Buffer.from(imageBuffer).toString('base64');
     const mimeType = image.type || 'image/jpeg';
 
-    const langPrompt = language === 'hi' ? '\nCRITICAL INSTRUCTION: You MUST provide all textual details, names, symptoms, prevention measures, and treatment recommendations entirely in Hindi (Devanagari script). The JSON keys and categorical values (severity_level, disease_category, is_healthy) MUST remain exactly as specified in English.' : '';
-
     const SYSTEM_PROMPT = `You are an expert AI agronomist specializing in Indian crop diseases. 
-Analyze the crop image provided and return a JSON response ONLY (no markdown, no explanation) with this exact structure:
+Analyze the crop image provided and return a JSON response ONLY (no markdown, no explanation) with this exact structure containing both English and Hindi translations:
 {
-  "disease_name": "string (full scientific and common name, or 'Healthy Crop' if no disease)",
+  "disease_name": "string (full scientific and common name in English, or 'Healthy Crop' if no disease)",
+  "disease_name_hi": "string (name in Hindi, Devanagari script)",
   "confidence_score": number (0-100),
   "severity_level": "low" | "moderate" | "high" | "critical" | "none",
   "disease_category": "fungal" | "bacterial" | "viral" | "pest" | "nutrient_deficiency" | "none",
-  "symptoms_detected": ["string", ...],
+  "symptoms_detected": ["string in English", ...],
+  "symptoms_detected_hi": ["string in Hindi", ...],
   "treatment_recommendations": {
-    "immediate": ["string", ...],
-    "chemical": ["string", ...],
-    "organic": ["string", ...]
+    "immediate": ["string in English", ...],
+    "immediate_hi": ["string in Hindi", ...],
+    "chemical": ["string in English", ...],
+    "chemical_hi": ["string in Hindi", ...],
+    "organic": ["string in English", ...],
+    "organic_hi": ["string in Hindi", ...]
   },
-  "prevention_measures": ["string", ...],
+  "prevention_measures": ["string in English", ...],
+  "prevention_measures_hi": ["string in Hindi", ...],
   "is_healthy": boolean
 }
-Focus on Indian farming conditions, crops, and available treatments. Recommend pesticides/fungicides available in India.${langPrompt}`;
+Focus on Indian farming conditions, crops, and available treatments. Recommend pesticides/fungicides available in India. Ensure all _hi fields are accurately translated into Hindi (Devanagari script).`;
 
     const userPrompt = cropType
       ? `Analyze this ${cropType} crop image for diseases.`

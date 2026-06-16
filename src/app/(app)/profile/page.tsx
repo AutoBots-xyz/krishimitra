@@ -5,13 +5,62 @@ import { useFarmerStore } from "@/store/farmerStore";
 import { User, MapPin, Sprout, Droplets, Phone, Settings, LogOut, ChevronRight, Edit3, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+
+const FIELD_OPTIONS = {
+  soilType: [
+    { value: "Black Cotton Soil", en: "Black Cotton Soil", hi: "काली कपास मिट्टी" },
+    { value: "red soil", en: "Red Soil", hi: "लाल मिट्टी" }, // Match the user's DB entry
+    { value: "Alluvial Soil", en: "Alluvial Soil", hi: "जलोढ़ मिट्टी" },
+    { value: "Laterite Soil", en: "Laterite Soil", hi: "लेटराइट मिट्टी" },
+    { value: "Sandy Soil", en: "Sandy Soil", hi: "बलुई मिट्टी" },
+  ],
+  primaryCrops: [
+    { value: "Wheat, Soybean", en: "Wheat, Soybean", hi: "गेहूं, सोयाबीन" },
+    { value: "Rice", en: "Rice", hi: "चावल" },
+    { value: "Cotton", en: "Cotton", hi: "कपास" },
+    { value: "Sugarcane", en: "Sugarcane", hi: "गन्ना" },
+    { value: "Maize", en: "Maize", hi: "मक्का" },
+  ],
+  irrigation: [
+    { value: "Tube Well", en: "Tube Well", hi: "ट्यूबवेल" },
+    { value: "Canal", en: "Canal", hi: "नहर" },
+    { value: "Rainfed", en: "Rainfed", hi: "वर्षा आधारित" },
+    { value: "Drip Irrigation", en: "Drip Irrigation", hi: "ड्रिप सिंचाई" },
+  ],
+  budgetLevel: [
+    { value: "Low", en: "Low", hi: "निम्न" },
+    { value: "Medium", en: "Medium", hi: "मध्यम" },
+    { value: "High", en: "High", hi: "उच्च" },
+  ],
+  laborAvailability: [
+    { value: "Family Only", en: "Family Only", hi: "केवल परिवार" },
+    { value: "Family + Seasonal Hires", en: "Family + Seasonal Hires", hi: "परिवार + मौसमी कर्मचारी" },
+    { value: "Full-time Hires", en: "Full-time Hires", hi: "पूर्णकालिक कर्मचारी" },
+  ],
+  farmingApproach: [
+    { value: "Conventional", en: "Conventional", hi: "पारंपरिक" },
+    { value: "Organic", en: "Organic", hi: "जैविक" },
+    { value: "Mixed", en: "Mixed", hi: "मिश्रित" },
+  ],
+  targetMarket: [
+    { value: "Local Mandi", en: "Local Mandi", hi: "स्थानीय मंडी" },
+    { value: "Export", en: "Export", hi: "निर्यात" },
+    { value: "Direct to Consumer", en: "Direct to Consumer", hi: "सीधे उपभोक्ता को" },
+    { value: "Contract Farming", en: "Contract Farming", hi: "अनुबंध खेती" },
+  ],
+  riskAppetite: [
+    { value: "Low", en: "Low", hi: "निम्न" },
+    { value: "Medium", en: "Medium", hi: "मध्यम" },
+    { value: "High", en: "High", hi: "उच्च" },
+  ]
+};
 
 export default function ProfilePage() {
   const { language, setLanguage } = useLanguageStore();
   const { profile, setProfile } = useFarmerStore();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Default profile if null
   const defaultProfile = {
     name: "Ramesh Kumar",
     phone: "+91 98765 43210",
@@ -20,21 +69,88 @@ export default function ProfilePage() {
     soilType: "Black Cotton Soil",
     primaryCrops: "Wheat, Soybean",
     irrigation: "Tube Well",
+    budgetLevel: "Medium",
+    laborAvailability: "Family + Seasonal Hires",
+    farmingApproach: "Conventional",
+    targetMarket: "Local Mandi",
+    riskAppetite: "Medium",
   };
 
   const [formData, setFormData] = useState(profile || defaultProfile);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
-    if (!profile) {
-      setProfile(defaultProfile);
-    } else {
-      setFormData(profile);
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoadingProfile(false);
+        if (!profile) setProfile(defaultProfile);
+        return;
+      }
+      
+      const { data: dbProfile, error } = await supabase
+        .from('farmers')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+        
+      if (dbProfile && !error) {
+        const loadedProfile = {
+          id: dbProfile.id,
+          name: dbProfile.full_name || defaultProfile.name,
+          phone: dbProfile.phone || defaultProfile.phone,
+          location: [dbProfile.village, dbProfile.district, dbProfile.state].filter(Boolean).join(', ') || defaultProfile.location,
+          farmSize: dbProfile.land_size_acres ? `${dbProfile.land_size_acres} Acres` : defaultProfile.farmSize,
+          soilType: dbProfile.soil_type || defaultProfile.soilType,
+          primaryCrops: dbProfile.primary_crop || defaultProfile.primaryCrops,
+          irrigation: dbProfile.irrigation_source || defaultProfile.irrigation,
+          budgetLevel: dbProfile.budget_level || defaultProfile.budgetLevel,
+          laborAvailability: dbProfile.labor_availability || defaultProfile.laborAvailability,
+          farmingApproach: dbProfile.farming_approach || defaultProfile.farmingApproach,
+          targetMarket: dbProfile.target_market || defaultProfile.targetMarket,
+          riskAppetite: dbProfile.risk_appetite || defaultProfile.riskAppetite,
+        };
+        setProfile(loadedProfile);
+        setFormData(loadedProfile);
+      } else if (!profile) {
+        setProfile(defaultProfile);
+      }
+      setLoadingProfile(false);
     }
-  }, [profile, setProfile]);
+    loadProfile();
+  }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setProfile(formData);
     setIsEditing(false);
+    
+    // Save to Supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      // Parse location and farm size back if possible
+      const locParts = formData.location.split(',').map((s: string) => s.trim());
+      const state = locParts.length > 1 ? locParts[locParts.length - 1] : null;
+      const district = locParts.length > 0 ? locParts[0] : null;
+      const acresMatch = formData.farmSize.match(/([0-9.]+)/);
+      const acres = acresMatch ? parseFloat(acresMatch[1]) : null;
+
+      await supabase.from('farmers').upsert({
+        id: user.id,
+        full_name: formData.name,
+        phone: formData.phone !== defaultProfile.phone ? formData.phone : null,
+        state,
+        district,
+        land_size_acres: acres,
+        soil_type: formData.soilType,
+        primary_crop: formData.primaryCrops,
+        irrigation_source: formData.irrigation,
+        budget_level: formData.budgetLevel,
+        labor_availability: formData.laborAvailability,
+        farming_approach: formData.farmingApproach,
+        target_market: formData.targetMarket,
+        risk_appetite: formData.riskAppetite,
+      }, { onConflict: 'id' });
+    }
   };
 
   const handleCancel = () => {
@@ -127,6 +243,7 @@ export default function ProfilePage() {
             formData={formData}
             setFormData={setFormData}
             color="#B67D14"
+            language={language}
           />
           <DetailCard 
             icon={<Droplets className="w-5 h-5 text-secondary" />}
@@ -137,6 +254,8 @@ export default function ProfilePage() {
             formData={formData}
             setFormData={setFormData}
             color="#C8800F"
+            options={FIELD_OPTIONS.soilType}
+            language={language}
           />
           <DetailCard 
             icon={<Sprout className="w-5 h-5 text-success" />}
@@ -147,6 +266,8 @@ export default function ProfilePage() {
             formData={formData}
             setFormData={setFormData}
             color="#1A6B45"
+            options={FIELD_OPTIONS.primaryCrops}
+            language={language}
           />
           <DetailCard 
             icon={<Droplets className="w-5 h-5 text-primary" />}
@@ -157,6 +278,68 @@ export default function ProfilePage() {
             formData={formData}
             setFormData={setFormData}
             color="#1A4731"
+            options={FIELD_OPTIONS.irrigation}
+            language={language}
+          />
+          <DetailCard 
+            icon={<Settings className="w-5 h-5 text-secondary" />}
+            label={language === "en" ? "Budget Level" : "बजट स्तर"}
+            value={currentData.budgetLevel}
+            fieldKey="budgetLevel"
+            isEditing={isEditing}
+            formData={formData}
+            setFormData={setFormData}
+            color="#C8800F"
+            options={FIELD_OPTIONS.budgetLevel}
+            language={language}
+          />
+          <DetailCard 
+            icon={<User className="w-5 h-5 text-warning" />}
+            label={language === "en" ? "Labor Availability" : "श्रम की उपलब्धता"}
+            value={currentData.laborAvailability}
+            fieldKey="laborAvailability"
+            isEditing={isEditing}
+            formData={formData}
+            setFormData={setFormData}
+            color="#B67D14"
+            options={FIELD_OPTIONS.laborAvailability}
+            language={language}
+          />
+          <DetailCard 
+            icon={<Sprout className="w-5 h-5 text-success" />}
+            label={language === "en" ? "Farming Approach" : "खेती का दृष्टिकोण"}
+            value={currentData.farmingApproach}
+            fieldKey="farmingApproach"
+            isEditing={isEditing}
+            formData={formData}
+            setFormData={setFormData}
+            color="#1A6B45"
+            options={FIELD_OPTIONS.farmingApproach}
+            language={language}
+          />
+          <DetailCard 
+            icon={<MapPin className="w-5 h-5 text-primary" />}
+            label={language === "en" ? "Target Market" : "लक्षित बाज़ार"}
+            value={currentData.targetMarket}
+            fieldKey="targetMarket"
+            isEditing={isEditing}
+            formData={formData}
+            setFormData={setFormData}
+            color="#1A4731"
+            options={FIELD_OPTIONS.targetMarket}
+            language={language}
+          />
+          <DetailCard 
+            icon={<Settings className="w-5 h-5 text-error" />}
+            label={language === "en" ? "Risk Appetite" : "जोखिम क्षमता"}
+            value={currentData.riskAppetite}
+            fieldKey="riskAppetite"
+            isEditing={isEditing}
+            formData={formData}
+            setFormData={setFormData}
+            color="#C53030"
+            options={FIELD_OPTIONS.riskAppetite}
+            language={language}
           />
         </div>
       </div>
@@ -195,7 +378,18 @@ export default function ProfilePage() {
   );
 }
 
-function DetailCard({ icon, label, value, fieldKey, isEditing, formData, setFormData, color }: any) {
+function DetailCard({ icon, label, value, fieldKey, isEditing, formData, setFormData, color, options, language }: any) {
+  const getDisplayValue = () => {
+    if (options && Array.isArray(options)) {
+      const match = options.find((opt: any) => opt.value.toLowerCase() === (value || "").toLowerCase());
+      if (match) return language === 'hi' ? match.hi : match.en;
+    }
+    if (fieldKey === 'farmSize' && typeof value === 'string') {
+      return value.replace(/Acres?/i, language === 'hi' ? 'एकड़' : 'Acres');
+    }
+    return value;
+  };
+
   return (
     <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/40 border border-white/60">
       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
@@ -204,14 +398,29 @@ function DetailCard({ icon, label, value, fieldKey, isEditing, formData, setForm
       <div className="flex-1">
         <p className="text-xs font-mono tracking-widest uppercase text-muted mb-0.5">{label}</p>
         {isEditing ? (
-          <input 
-            type="text" 
-            value={formData[fieldKey]} 
-            onChange={(e) => setFormData({...formData, [fieldKey]: e.target.value})}
-            className="font-semibold text-text text-base w-full bg-white/50 border border-black/10 rounded px-2 py-1 outline-none focus:border-primary/50"
-          />
+          options ? (
+            <select 
+              value={formData[fieldKey]}
+              onChange={(e) => setFormData({...formData, [fieldKey]: e.target.value})}
+              className="font-semibold text-text text-base w-full bg-white/50 border border-black/10 rounded px-2 py-1 outline-none focus:border-primary/50"
+            >
+              <option value="" disabled>{language === 'hi' ? 'चुनें...' : 'Select...'}</option>
+              {options.map((opt: any) => (
+                <option key={opt.value} value={opt.value}>
+                  {language === 'hi' ? opt.hi : opt.en}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input 
+              type="text" 
+              value={formData[fieldKey]} 
+              onChange={(e) => setFormData({...formData, [fieldKey]: e.target.value})}
+              className="font-semibold text-text text-base w-full bg-white/50 border border-black/10 rounded px-2 py-1 outline-none focus:border-primary/50"
+            />
+          )
         ) : (
-          <p className="font-semibold text-text text-base">{value}</p>
+          <p className="font-semibold text-text text-base">{getDisplayValue()}</p>
         )}
       </div>
     </div>

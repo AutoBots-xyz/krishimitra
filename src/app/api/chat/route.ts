@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Groq } from 'groq-sdk';
+import { mistral, MISTRAL_TEXT_MODEL } from '@/lib/mistral';
 
 const SYSTEM_PROMPT = `You are Krishi Mitra, an expert AI agronomist assistant for Indian farmers.
 You provide practical, actionable advice on crop diseases, seasonal planning, irrigation, government schemes, and weather.
@@ -12,12 +12,18 @@ CRITICAL FORMATTING RULES:
 5. Highlight important terms, chemicals, or schemes in **bold**.
 6. Provide highly detailed, step-by-step guidance rather than vague answers.
 
-If the user writes in Hindi, respond in Hindi. If in English, respond in English.
+IMPORTANT LANGUAGE RULE: You MUST always provide your answer in BOTH English and Hindi. Structure your response EXACTLY like this:
+### English
+(Your complete, detailed answer in English using markdown lists and bold text)
+
+---
+
+### हिन्दी (Hindi)
+(Your complete, detailed answer translated to Hindi using markdown lists and bold text)
+
 Never give generic answers — always relate to Indian farming conditions and be highly detailed.`;
 
-const client = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+
 
 export async function POST(req: Request) {
   try {
@@ -27,8 +33,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
     }
 
-    const completion = await client.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+    const completion = await mistral.chat.complete({
+      model: MISTRAL_TEXT_MODEL,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         ...messages.map((m: { role: string; content: string }) => ({
@@ -36,13 +42,11 @@ export async function POST(req: Request) {
           content: m.content,
         })),
       ],
-      temperature: 1,
-      max_tokens: 4096,
-      top_p: 1,
+      temperature: 0.7,
     });
 
     const content = completion.choices?.[0]?.message?.content;
-    if (!content) throw new Error('Empty response from Groq');
+    if (!content) throw new Error('Empty response from Mistral');
 
     return NextResponse.json({
       role: 'assistant',

@@ -1,0 +1,7 @@
+ALTER TABLE farmers
+ADD COLUMN IF NOT EXISTS irrigation_source TEXT,
+ADD COLUMN IF NOT EXISTS budget_level TEXT,
+ADD COLUMN IF NOT EXISTS labor_availability TEXT,
+ADD COLUMN IF NOT EXISTS farming_approach TEXT,
+ADD COLUMN IF NOT EXISTS target_market TEXT,
+ADD COLUMN IF NOT EXISTS risk_appetite TEXT;

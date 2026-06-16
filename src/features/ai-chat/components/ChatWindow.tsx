@@ -154,13 +154,7 @@ export default function ChatWindow() {
             >
               {saving ? "Saving..." : saved ? "Saved!" : "Save to History"}
             </button>
-            <button 
-              onClick={toggleLanguage} 
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm border border-primary/10 text-primary hover:bg-primary/5 transition-colors"
-              title="Toggle Language"
-            >
-              <Languages className="w-4 h-4" />
-            </button>
+
           </div>
         </div>
       </div>

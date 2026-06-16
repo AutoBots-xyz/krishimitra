@@ -9,6 +9,13 @@ export default function DiseaseReportCard({ report }: { report: any }) {
   const themeColor = isHighRisk ? '#C53030' : '#C8800F';
   const themeBg = isHighRisk ? 'linear-gradient(135deg, #fff1f0 0%, #ffe4e1 100%)' : 'linear-gradient(135deg, #fdf6ec 0%, #fef3e2 100%)';
 
+  const dName = language === 'hi' && report.disease_name_hi ? report.disease_name_hi : report.disease_name;
+  const symptoms = language === 'hi' && report.symptoms_detected_hi ? report.symptoms_detected_hi : report.symptoms_detected;
+  const prevention = language === 'hi' && report.prevention_measures_hi ? report.prevention_measures_hi : report.prevention_measures;
+  const immediateRec = language === 'hi' && report.treatment_recommendations?.immediate_hi ? report.treatment_recommendations.immediate_hi : report.treatment_recommendations?.immediate;
+  const chemicalRec = language === 'hi' && report.treatment_recommendations?.chemical_hi ? report.treatment_recommendations.chemical_hi : report.treatment_recommendations?.chemical;
+  const organicRec = language === 'hi' && report.treatment_recommendations?.organic_hi ? report.treatment_recommendations.organic_hi : report.treatment_recommendations?.organic;
+
   return (
     <div className="flex flex-col gap-4">
       
@@ -30,7 +37,7 @@ export default function DiseaseReportCard({ report }: { report: any }) {
           </div>
 
           <h2 className="font-display font-bold text-[2.5rem] md:text-[3rem] leading-[1.05] text-[#0D1910] mb-8">
-            {report.disease_name}
+            {dName}
           </h2>
 
           <div className="flex items-end justify-between">
@@ -58,7 +65,7 @@ export default function DiseaseReportCard({ report }: { report: any }) {
             <h3 className="font-display text-xl font-semibold text-primary">{language === 'en' ? 'Symptoms' : 'लक्षण'}</h3>
           </div>
           <ul className="space-y-3">
-            {report.symptoms_detected.map((sym: string, i: number) => (
+            {symptoms?.map((sym: string, i: number) => (
               <li key={i} className="flex items-start gap-2 text-sm text-text/80 leading-relaxed">
                 <span className="text-primary mt-1 opacity-50">•</span>
                 {sym}
@@ -76,7 +83,7 @@ export default function DiseaseReportCard({ report }: { report: any }) {
             <h3 className="font-display text-xl font-semibold text-primary">{language === 'en' ? 'Prevention' : 'बचाव'}</h3>
           </div>
           <ul className="space-y-3">
-            {report.prevention_measures.map((prev: string, i: number) => (
+            {prevention?.map((prev: string, i: number) => (
               <li key={i} className="flex items-start gap-2 text-sm text-text/80 leading-relaxed">
                 <span className="text-primary mt-1 opacity-50">•</span>
                 {prev}
@@ -90,33 +97,33 @@ export default function DiseaseReportCard({ report }: { report: any }) {
           <h3 className="font-display text-2xl font-semibold text-primary mb-6">{language === 'en' ? 'Treatment Protocol' : 'उपचार प्रोटोकॉल'}</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {report.treatment_recommendations.immediate && (
+            {immediateRec && (
               <div className="rounded-xl p-5" style={{ background: 'linear-gradient(180deg, #fff1f0 0%, #fff 100%)', border: '1px solid rgba(197,48,48,0.1)' }}>
                 <div className="flex items-center gap-2 mb-3">
                   <Zap className="w-4 h-4 text-[#C53030]" />
                   <span className="font-mono text-[10px] tracking-widest uppercase font-semibold text-[#C53030]">{language === 'en' ? 'Immediate' : 'तत्काल'}</span>
                 </div>
-                <p className="text-sm text-text/90 leading-relaxed">{report.treatment_recommendations.immediate.join(", ")}</p>
+                <p className="text-sm text-text/90 leading-relaxed">{immediateRec.join(", ")}</p>
               </div>
             )}
             
-            {report.treatment_recommendations.chemical && (
+            {chemicalRec && (
               <div className="rounded-xl p-5" style={{ background: 'linear-gradient(180deg, #f0f4ff 0%, #fff 100%)', border: '1px solid rgba(26,71,49,0.1)' }}>
                 <div className="flex items-center gap-2 mb-3">
                   <Droplets className="w-4 h-4 text-[#1A4731]" />
                   <span className="font-mono text-[10px] tracking-widest uppercase font-semibold text-[#1A4731]">{language === 'en' ? 'Chemical' : 'रासायनिक'}</span>
                 </div>
-                <p className="text-sm text-text/90 leading-relaxed">{report.treatment_recommendations.chemical.join(", ")}</p>
+                <p className="text-sm text-text/90 leading-relaxed">{chemicalRec.join(", ")}</p>
               </div>
             )}
             
-            {report.treatment_recommendations.organic && (
+            {organicRec && (
               <div className="rounded-xl p-5" style={{ background: 'linear-gradient(180deg, #e8f5ee 0%, #fff 100%)', border: '1px solid rgba(26,107,69,0.1)' }}>
                 <div className="flex items-center gap-2 mb-3">
                   <Leaf className="w-4 h-4 text-[#1A6B45]" />
                   <span className="font-mono text-[10px] tracking-widest uppercase font-semibold text-[#1A6B45]">{language === 'en' ? 'Organic' : 'जैविक'}</span>
                 </div>
-                <p className="text-sm text-text/90 leading-relaxed">{report.treatment_recommendations.organic.join(", ")}</p>
+                <p className="text-sm text-text/90 leading-relaxed">{organicRec.join(", ")}</p>
               </div>
             )}
           </div>

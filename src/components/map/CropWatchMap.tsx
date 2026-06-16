@@ -182,15 +182,15 @@ export default function CropWatchMap() {
               <Zap className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-[15px] text-text leading-none tracking-wide">CropWatch</h1>
-              <p className="font-mono text-[8px] text-muted tracking-widest uppercase mt-0.5">Predictive Intelligence</p>
+              <h1 className="font-display font-bold text-[15px] text-text leading-none tracking-wide">{language === 'hi' ? 'क्रॉपवॉच' : 'CropWatch'}</h1>
+              <p className="font-mono text-[8px] text-muted tracking-widest uppercase mt-0.5">{language === 'hi' ? 'भविष्यवाणी खुफिया' : 'Predictive Intelligence'}</p>
             </div>
           </div>
           
           <div className="w-[1px] h-8 bg-black/10 mx-2" />
           
           <div className="flex items-center gap-2 px-2">
-            <span className="font-mono text-[10px] uppercase font-bold text-primary tracking-widest">Live Engine</span>
+            <span className="font-mono text-[10px] uppercase font-bold text-primary tracking-widest">{language === 'hi' ? 'लाइव इंजन' : 'Live Engine'}</span>
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(26,71,49,0.6)]" />
           </div>
         </div>
@@ -199,11 +199,11 @@ export default function CropWatchMap() {
         <div className="flex items-center bg-white/50 backdrop-blur-xl border border-white/40 rounded-2xl px-6 py-2 shadow-md pointer-events-auto">
           <div className="flex items-center gap-2 px-4 border-r border-black/5">
             <span className="font-mono text-sm font-bold text-text">{riskPoints.length}</span>
-            <span className="font-mono text-[9px] uppercase text-muted tracking-widest">Active Nodes</span>
+            <span className="font-mono text-[9px] uppercase text-muted tracking-widest">{language === 'hi' ? 'सक्रिय नोड्स' : 'Active Nodes'}</span>
           </div>
           <div className="flex items-center gap-2 px-4">
             <span className="font-mono text-sm font-bold text-error">{highRiskCount}</span>
-            <span className="font-mono text-[9px] uppercase text-error/80 tracking-widest">Critical Zones</span>
+            <span className="font-mono text-[9px] uppercase text-error/80 tracking-widest">{language === 'hi' ? 'गंभीर क्षेत्र' : 'Critical Zones'}</span>
           </div>
         </div>
       </div>
@@ -305,19 +305,19 @@ export default function CropWatchMap() {
           onClick={() => setActiveFilter("ALL")}
           className={`px-5 py-2.5 rounded-xl font-mono text-[10px] font-bold tracking-widest backdrop-blur-md shadow-sm transition-colors ${activeFilter === "ALL" ? "bg-primary/10 text-primary border border-primary/20" : "bg-white/70 text-muted border border-white/60 hover:bg-white/90"}`}
         >
-          ALL REGIONS
+          {language === 'hi' ? 'सभी क्षेत्र' : 'ALL REGIONS'}
         </button>
         <button 
           onClick={() => setActiveFilter("HIGH")}
           className={`px-5 py-2.5 rounded-xl font-mono text-[10px] font-bold tracking-widest backdrop-blur-md shadow-sm transition-colors ${activeFilter === "HIGH" ? "bg-error/10 text-error border border-error/20" : "bg-white/70 text-muted border border-white/60 hover:bg-white/90"}`}
         >
-          HIGH RISK
+          {language === 'hi' ? 'उच्च जोखिम' : 'HIGH RISK'}
         </button>
         <button 
           onClick={() => setActiveFilter("MONITORING")}
           className={`px-5 py-2.5 rounded-xl font-mono text-[10px] font-bold tracking-widest backdrop-blur-md shadow-sm transition-colors ${activeFilter === "MONITORING" ? "bg-secondary/10 text-secondary border border-secondary/20" : "bg-white/70 text-muted border border-white/60 hover:bg-white/90"}`}
         >
-          MONITORING
+          {language === 'hi' ? 'निगरानी' : 'MONITORING'}
         </button>
       </div>
 
